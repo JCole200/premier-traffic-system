@@ -6,10 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite" // Vercel actually supports SQLite for simple testing/prototyping if file is present, but usually Postgres is better.
-  // We will try "postgresql" if user sets it up, but for now stick to sqlite.
-  // CRITICAL FIX: We need to use 'env' variable.
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  // Reverting to direct file path to ensure Vercel can find it without env vars in this specific prototype setup.
+  url      = "file:./dev.db"
 }
 
 model InventoryItem {
