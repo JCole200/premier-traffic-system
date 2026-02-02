@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
 import { INVENTORY_BASELINES } from '../../../lib/constants';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     try {
         console.log('Seeding database via API...');
