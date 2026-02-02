@@ -1,4 +1,0 @@
-{
-    "buildCommand": "npx prisma db push --accept-data-loss && npx prisma generate && next build",
-    "installCommand": "npm install"
-}
