@@ -7,8 +7,10 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("POSTGRES_PRISMA_URL") // Vercel automatically sets this
-  directUrl = env("POSTGRES_URL_NON_POOLING") // Vercel automatically sets this
+  // Used "POSTGRES_PRISMA_URL" before, but user screenshot shows "POSTGRES_URL" and "DATABASE_URL".
+  // "POSTGRES_URL" is the standard one for Vercel Postgres usually.
+  url      = env("POSTGRES_URL") 
+  directUrl = env("POSTGRES_URL_NON_POOLING") // If this is missing, simple connection might fail in serverless, but let's try standard.
 }
 
 model InventoryItem {
