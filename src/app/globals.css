@@ -1,27 +1,65 @@
+@import 'react-big-calendar/lib/css/react-big-calendar.css';
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Core Colors - Dark Premium Theme */
+  --bg-app: #0f1115;
+  --bg-panel: #161b22;
+  --bg-card: rgba(30, 35, 45, 0.6);
+
+  /* Primary Accents - "Premier" Vibrance */
+  --primary-hue: 250;
+  /* Deep Purple/Blue */
+  --primary: hsl(var(--primary-hue), 70%, 60%);
+  --primary-glow: hsl(var(--primary-hue), 70%, 60%, 0.5);
+  --accent-cyan: #06b6d4;
+  --accent-pink: #ec4899;
+
+  /* Typography */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --text-main: #ffffff;
+  --text-muted: #94a3b8;
+  --text-dim: #475569;
+
+  /* Borders & Glass */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --glass-blur: 12px;
+
+  /* Status */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+
+  --bg-input: rgba(0, 0, 0, 0.2);
+
+  --bg-nav-active: rgba(255, 255, 255, 0.05);
+  --text-nav-active: #ffffff;
+  --bg-nav-hover: rgba(255, 255, 255, 0.05);
+  --text-nav-hover: #ffffff;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+[data-theme='light'] {
+  --bg-app: #f1f5f9;
+  --bg-panel: #ffffff;
+  --bg-card: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-dim: #94a3b8;
+  --border-subtle: #cbd5e1;
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(0, 0, 0, 0.05);
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
+  --bg-input: #ffffff;
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --primary: hsl(var(--primary-hue), 70%, 50%);
+  --primary-glow: hsl(var(--primary-hue), 70%, 60%, 0.3);
+
+  --bg-nav-active: rgba(0, 0, 0, 0.08);
+  /* Darker for visibility on light/white bg */
+  --text-nav-active: var(--primary);
+  --bg-nav-hover: rgba(0, 0, 0, 0.04);
+  --text-nav-hover: var(--primary);
 }
 
 * {
@@ -30,13 +68,169 @@ body {
   margin: 0;
 }
 
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
 a {
   color: inherit;
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+/* --- Utilities --- */
+
+/* Glassmorphism Panel */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Gradient Text */
+.text-gradient {
+  background: linear-gradient(135deg, var(--primary), var(--accent-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Layout Containers */
+.container-xl {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grid-dashboard {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+}
+
+/* Form Elements */
+input,
+select,
+textarea {
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(100, 100, 255, 0.1);
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), #6366f1);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 4px 15px var(--primary-glow);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Range Slider Styling */
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  background: transparent;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  margin-top: -8px;
+  box-shadow: 0 0 10px var(--primary-glow);
+  transition: transform 0.1s ease;
+}
+
+input[type=range]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 4px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+input[type=range]:focus::-webkit-slider-runnable-track {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Theme Toggle */
+.theme-toggle-btn {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--glass-bg);
+  color: var(--primary);
+  border-color: var(--primary);
+  box-shadow: 0 0 10px var(--primary-glow);
+}
+
+.nav-item {
+  transition: all 0.2s;
+}
+
+
+.nav-item:hover {
+  background: var(--bg-nav-hover) !important;
+  color: var(--text-nav-hover) !important;
 }

@@ -1,0 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model InventoryItem {
+  id            String @id // e.g. 'audio-podcast-unbelievable'
+  name          String
+  type          String // 'AUDIO', 'DISPLAY', 'EMAIL'
+  totalCapacity Int
+  unit          String
+  bookings      Booking[]
+}
+
+model Booking {
+  id                 String   @id @default(uuid())
+  clientName         String
+  campaignName       String
+  startDate          DateTime
+  endDate            DateTime
+  status             String   @default("CONFIRMED")
+  
+  // New Fields
+  contractNumber     String?
+  bookerName         String?
+  bookingType        String?  // 'AUDIO', 'DISPLAY', 'BESPOKE_ESEND', 'ADS_IN_ESEND'
+  additionalDetails  String?  // JSON string for extra fields (targeting, websites, etc.)
+
+  // Inventory Requests
+  audioSpots         Int      @default(0)
+  displayImpressions Int      @default(0)
+  
+  // Relations
+  audioTargetId      String?
+  audioTarget        InventoryItem? @relation(fields: [audioTargetId], references: [id])
+  
+  emailDates         String?  // Storing as JSON string for SQLite simplicity: "['2026-01-01', ...]"
+  geoTarget          String   @default("GLOBAL")
+  
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
