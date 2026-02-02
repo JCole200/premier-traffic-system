@@ -6,9 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  // Reverting to direct file path to ensure Vercel can find it without env vars in this specific prototype setup.
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("POSTGRES_PRISMA_URL") // Vercel automatically sets this
+  directUrl = env("POSTGRES_URL_NON_POOLING") // Vercel automatically sets this
 }
 
 model InventoryItem {
