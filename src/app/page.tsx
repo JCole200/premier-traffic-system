@@ -3,6 +3,8 @@ import InventoryCard from '../components/dashboard/InventoryCard';
 import Link from 'next/link';
 import { checkAvailability } from '../lib/actions/booking';
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
   // Mock Date Range for Month View
   const start = new Date().toISOString();
@@ -71,4 +73,4 @@ export default async function Home() {
   );
 }
 
-export const dynamic = 'force-dynamic';
+
