@@ -30,7 +30,7 @@ export default function Sidebar() {
                     <img
                         src="/premier-logo.png"
                         alt="Premier"
-                        style={{ height: '40px', width: 'auto', objectFit: 'contain' }}
+                        style={{ width: '140px', height: 'auto', objectFit: 'contain' }}
                     />
                 </div>
 
