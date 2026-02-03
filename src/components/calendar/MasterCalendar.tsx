@@ -40,7 +40,11 @@ export default function MasterCalendar({ bookings, inventoryItems }: Props) {
             // If bookingType is set (new bookings), use it. 
             // If not (old data), try to infer from used slots.
             filtered = filtered.filter(b => {
-                if (b.bookingType) return b.bookingType.includes(filterType) || (filterType === 'EMAIL' && b.bookingType.includes('ESEND'));
+                if (b.bookingType) {
+                    if (filterType === 'AUDIO') return b.bookingType === 'AUDIO';
+                    if (filterType === 'DISPLAY') return b.bookingType === 'DISPLAY';
+                    if (filterType === 'EMAIL') return b.bookingType === 'BESPOKE_ESEND' || b.bookingType === 'ADS_IN_ESEND';
+                }
                 // Inference fallback
                 if (filterType === 'AUDIO') return b.audioSpots > 0;
                 if (filterType === 'DISPLAY') return b.displayImpressions > 0;
@@ -57,9 +61,10 @@ export default function MasterCalendar({ bookings, inventoryItems }: Props) {
         return filtered.map(b => {
             // Determine Color
             let color = '#3174ad'; // Default Blue
-            if (b.bookingType?.includes('AUDIO')) color = '#dd5e5e'; // Red
-            if (b.bookingType?.includes('DISPLAY')) color = '#55b467'; // Green
-            if (b.bookingType?.includes('ESEND')) color = '#e3a008'; // Yellow/Orange
+            if (b.bookingType === 'AUDIO') color = '#dd5e5e'; // Red
+            if (b.bookingType === 'DISPLAY') color = '#55b467'; // Green
+            if (b.bookingType === 'BESPOKE_ESEND') color = '#e3a008'; // Orange
+            if (b.bookingType === 'ADS_IN_ESEND') color = '#9333ea'; // Purple
 
             return {
                 id: b.id,

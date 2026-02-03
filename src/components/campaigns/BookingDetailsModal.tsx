@@ -109,6 +109,7 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
                                         {details.targeting && <div>🎯 Targeting: {details.targeting.join(', ')}</div>}
                                         {details.displayType && <div>🖼 Format: {details.displayType}</div>}
                                         {details.emailLists && <div>📬 Lists: {details.emailLists.join(', ')}</div>}
+                                        {details.adsEmailType && <div>📧 Publication: {details.adsEmailType}</div>}
                                         {details.emailNote && <div>📝 Note: {details.emailNote.replace(/<[^>]*>?/gm, '')}</div>}
                                     </div>
                                 </div>
