@@ -26,9 +26,13 @@ export default function Sidebar() {
             flexDirection: 'column'
         }}>
             <div style={{ padding: '2rem 1.5rem', flex: 1 }}>
-                <h1 className="text-gradient" style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '2rem' }}>
-                    Premier
-                </h1>
+                <div style={{ marginBottom: '2rem', paddingLeft: '0.5rem' }}>
+                    <img
+                        src="/premier-logo.png"
+                        alt="Premier"
+                        style={{ height: '40px', width: 'auto', objectFit: 'contain' }}
+                    />
+                </div>
 
                 <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     {navItems.map((item) => {
