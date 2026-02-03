@@ -53,9 +53,9 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
             zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center'
         }} onClick={onClose}>
             <div style={{
-                background: '#161b22', border: '1px solid var(--border-subtle)',
+                background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)',
                 borderRadius: '16px', width: '90%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto',
-                padding: '2rem', position: 'relative'
+                padding: '2rem', position: 'relative', color: 'var(--text-main)'
             }} onClick={e => e.stopPropagation()}>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
