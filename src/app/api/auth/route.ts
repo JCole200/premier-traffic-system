@@ -4,8 +4,10 @@ import { cookies } from 'next/headers';
 export async function POST(request: Request) {
     const { username, password } = await request.json();
 
-    if (username === 'admin' && password === 'fakjsdfnkaj') {
-        cookies().set('admin_session', 'true', {
+    if (username?.trim() === 'admin' && password?.trim() === 'fakjsdfnkaj') {
+        const response = NextResponse.json({ success: true });
+
+        response.cookies.set('admin_session', 'true', {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
@@ -13,7 +15,7 @@ export async function POST(request: Request) {
             maxAge: 60 * 60 * 24 // 1 day
         });
 
-        return NextResponse.json({ success: true });
+        return response;
     }
 
     return NextResponse.json({ success: false }, { status: 401 });
