@@ -13,6 +13,7 @@ interface Props {
 export default function AvailabilityCalendar({ type, targetId, onDateSelect, selectedDates = [] }: Props) {
     const [data, setData] = useState<Record<string, any>>({});
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const date = new Date();
     const year = date.getFullYear();
     const month = date.getMonth() + 1; // 1-indexed for our API
@@ -20,11 +21,13 @@ export default function AvailabilityCalendar({ type, targetId, onDateSelect, sel
     useEffect(() => {
         async function load() {
             setLoading(true);
+            setError(null);
             try {
                 const res = await getMonthlyAvailability(type, year, month, targetId);
                 setData(res);
             } catch (error) {
                 console.error("Failed to load availability:", error);
+                setError("Failed to load availability data. Please try again.");
             } finally {
                 setLoading(false);
             }
@@ -33,6 +36,7 @@ export default function AvailabilityCalendar({ type, targetId, onDateSelect, sel
     }, [type, targetId]);
 
     if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading availability...</div>;
+    if (error) return <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--danger)' }}>{error}</div>;
 
     const daysInMonth = Array.from({ length: Object.keys(data).length }, (_, i) => i + 1);
 
