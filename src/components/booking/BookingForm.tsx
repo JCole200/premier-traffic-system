@@ -383,7 +383,7 @@ export default function BookingForm() {
                                         type="checkbox"
                                         checked={emailLists.includes(list)}
                                         onChange={() => toggleArraySelection(list, emailLists, setEmailLists)}
-                                        style={{ accentColor: 'var(--primary)' }}
+                                        style={{ accentColor: 'var(--primary)', width: 'auto' }}
                                     />
                                     {list}
                                 </label>
