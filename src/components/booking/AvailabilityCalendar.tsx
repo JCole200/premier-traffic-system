@@ -20,9 +20,14 @@ export default function AvailabilityCalendar({ type, targetId, onDateSelect, sel
     useEffect(() => {
         async function load() {
             setLoading(true);
-            const res = await getMonthlyAvailability(type, year, month, targetId);
-            setData(res);
-            setLoading(false);
+            try {
+                const res = await getMonthlyAvailability(type, year, month, targetId);
+                setData(res);
+            } catch (error) {
+                console.error("Failed to load availability:", error);
+            } finally {
+                setLoading(false);
+            }
         }
         load();
     }, [type, targetId]);

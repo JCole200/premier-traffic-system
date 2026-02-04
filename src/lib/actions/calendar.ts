@@ -2,7 +2,19 @@
 
 import prisma from '../prisma';
 
+import { INVENTORY_BASELINES } from '../constants';
+
 export async function getMonthlyAvailability(type: string, year: number, month: number, targetId?: string) {
+    // 0. Auto-Seed if empty (Self-healing)
+    const count = await prisma.inventoryItem.count();
+    if (count === 0) {
+        console.log('Database empty. Seeding default inventory...');
+        console.log('Database empty. Seeding default inventory...');
+        for (const item of INVENTORY_BASELINES) {
+            await prisma.inventoryItem.create({ data: item });
+        }
+    }
+
     // 1. Determine Capacity
     let capacity = 0;
     if (targetId) {
