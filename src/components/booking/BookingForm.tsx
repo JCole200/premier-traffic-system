@@ -33,6 +33,7 @@ export default function BookingForm() {
     const [impressions, setImpressions] = useState<number>(0); // For Audio or Display
 
     // Specifics
+    const [department, setDepartment] = useState('SALES');
     const [audioTargeting, setAudioTargeting] = useState<string[]>([]);
     const [displayType, setDisplayType] = useState('MPU');
     const [displayWebsites, setDisplayWebsites] = useState<string[]>([]);
@@ -73,13 +74,14 @@ export default function BookingForm() {
             // Map to BookingRequest
             const bookingData: Omit<BookingRequest, 'id' | 'status'> = {
                 clientName,
-                campaignName: bookingType + ' Campaign', // Defaulting as user didn't ask for it specifically in the new form
+                campaignName: bookingType + ' Campaign',
                 startDate: startDate || new Date().toISOString(),
                 endDate: endDate || new Date().toISOString(),
                 contractNumber,
                 bookerName,
                 bookingType,
-                geoTarget: 'GLOBAL' as GeoRegion, // Default
+                department, // Add Department
+                geoTarget: 'GLOBAL' as GeoRegion,
                 additionalDetails,
 
                 // Map specific metrics
@@ -342,12 +344,27 @@ export default function BookingForm() {
                     <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', color: 'var(--primary)' }}>Bespoke E-sends</h3>
 
                     <div style={{ marginBottom: '1.5rem' }}>
+                        <label style={labelStyle}>Booking Department *</label>
+                        <select
+                            style={inputStyle}
+                            value={department}
+                            onChange={e => setDepartment(e.target.value)}
+                        >
+                            <option value="SALES">Sales</option>
+                            <option value="MARKETING">Marketing</option>
+                            <option value="FUNDRAISING">Fundraising</option>
+                            <option value="INTERNAL">Internal / Premier</option>
+                        </select>
+                    </div>
+
+                    <div style={{ marginBottom: '1.5rem' }}>
                         <label style={labelStyle}>Target Email List(s) *</label>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                             {[
-                                'SALES A+B', 'SALES A', 'SALES B', 'SALES CTY',
-                                'SALES NEXGEN', 'SALES LEADERS', 'FUNDRAISING',
-                                'MARKETING', 'SALES WAlive', 'SALES PG', 'Other'
+                                'Sales A', 'Sales B', 'Sales A+B', 'Sales CTY',
+                                'Marketplace', 'Jobsearch', 'Magazines',
+                                'Impact/Fundraising', 'E-appeal', 'United Prayer',
+                                'Other'
                             ].map(list => (
                                 <label key={list} style={{
                                     ...checkboxLabelStyle,

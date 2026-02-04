@@ -27,8 +27,28 @@ export async function getBookings() {
     }));
 }
 
+import { validateBookingRules } from '../limits';
+
 // Create a booking
 export async function createBooking(data: Omit<BookingRequest, 'id' | 'status'>) {
+    // 1. Validate Rules
+    console.log('Validating rules for:', data.department, data.bookingType);
+
+    // Extract lists from additionalDetails if present
+    const details = data.additionalDetails;
+    const emailLists = details?.emailLists || [];
+
+    const validation = await validateBookingRules(
+        data.department || 'SALES',
+        data.bookingType,
+        data.emailDates || [],
+        emailLists
+    );
+
+    if (!validation.valid) {
+        throw new Error(validation.error || 'Booking violated business rules');
+    }
+
     const newBooking = await prisma.booking.create({
         // @ts-ignore
         data: {
@@ -46,6 +66,7 @@ export async function createBooking(data: Omit<BookingRequest, 'id' | 'status'>)
             contractNumber: data.contractNumber || null,
             bookerName: data.bookerName || null,
             bookingType: data.bookingType || null,
+            department: data.department || 'SALES',
             additionalDetails: data.additionalDetails ? JSON.stringify(data.additionalDetails) : null,
 
             status: 'CONFIRMED'

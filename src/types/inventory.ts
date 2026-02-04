@@ -23,6 +23,7 @@ export interface BookingRequest {
     contractNumber?: string;
     bookerName?: string;
     bookingType?: string; // 'AUDIO', 'DISPLAY', 'BESPOKE_ESEND', 'ADS_IN_ESEND'
+    department?: string; // 'SALES', 'MARKETING', 'FUNDRAISING', 'INTERNAL'
     additionalDetails?: any; // Flexible JSON object
 
     // Specific requests

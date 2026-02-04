@@ -34,6 +34,7 @@ model Booking {
   contractNumber     String?
   bookerName         String?
   bookingType        String?  // 'AUDIO', 'DISPLAY', 'BESPOKE_ESEND', 'ADS_IN_ESEND'
+  department         String   @default("SALES") // SALES, MARKETING, FUNDRAISING, INTERNAL
   additionalDetails  String?  // JSON string for extra fields (targeting, websites, etc.)
 
   // Inventory Requests
