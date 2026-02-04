@@ -2,6 +2,8 @@ import Sidebar from '../../components/layout/Sidebar';
 import { getBookings } from '../../lib/actions/booking';
 import CampaignTable from '../../components/campaigns/CampaignTable';
 
+export const dynamic = 'force-dynamic';
+
 export default async function CampaignsPage() {
     const bookings = await getBookings();
 
