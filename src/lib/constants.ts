@@ -51,25 +51,68 @@ export const INVENTORY_BASELINES: InventoryItem[] = [
         unit: 'pageviews'
     },
     {
-        id: 'email-list-a',
-        name: 'Email List A (Dedicated)',
-        type: 'EMAIL',
-        totalCapacity: 4,
+        id: 'email-daily-content',
+        name: 'Daily Content (Ads)',
+        type: 'ADS_IN_ESEND',
+        totalCapacity: 2, // Daily Cap
         unit: 'slots'
     },
     {
-        id: 'email-list-b',
-        name: 'Email List B (Dedicated)',
-        type: 'EMAIL',
-        totalCapacity: 4,
+        id: 'email-daily-news',
+        name: 'Daily News (Ads)',
+        type: 'ADS_IN_ESEND',
+        totalCapacity: 2, // Daily Cap
         unit: 'slots'
     },
     {
-        id: 'email-daily',
-        name: 'Daily Newsletters',
-        type: 'EMAIL',
-        totalCapacity: 90, // Approx 3 emails * 30 days
+        id: 'email-bsak',
+        name: 'Be Still & Know (Ads)',
+        type: 'ADS_IN_ESEND',
+        totalCapacity: 1, // Daily Cap
         unit: 'slots'
+    },
+    {
+        id: 'email-cty',
+        name: 'CTY (Ads)',
+        type: 'ADS_IN_ESEND',
+        totalCapacity: 1, // Weekly (Sat) - handled by logic
+        unit: 'slots'
+    },
+    {
+        id: 'email-wa',
+        name: 'WA (Ads)',
+        type: 'ADS_IN_ESEND',
+        totalCapacity: 1, // Weekly (Sat)
+        unit: 'slots'
+    },
+    {
+        id: 'email-pg',
+        name: 'PG (Ads)',
+        type: 'ADS_IN_ESEND',
+        totalCapacity: 1, // Weekly (Fri)
+        unit: 'slots'
+    },
+    {
+        id: 'email-affiliate-content',
+        name: 'Daily Content (Affiliate)',
+        type: 'ADS_IN_ESEND',
+        totalCapacity: 1,
+        unit: 'slots'
+    },
+    {
+        id: 'email-affiliate-news',
+        name: 'Daily News (Affiliate)',
+        type: 'ADS_IN_ESEND',
+        totalCapacity: 1,
+        unit: 'slots'
+    },
+    // BESPOKE LISTS (Placeholder for overall capacity if needed, but mainly driven by logic)
+    {
+        id: 'email-bespoke-general',
+        name: 'Bespoke E-Sends',
+        type: 'BESPOKE_ESEND',
+        totalCapacity: 5, // Arbitrary high number, constrained by limits.ts
+        unit: 'sends'
     }
 ];
 

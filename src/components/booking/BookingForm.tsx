@@ -441,20 +441,30 @@ export default function BookingForm() {
                     <div style={{ marginBottom: '1.5rem' }}>
                         <label style={labelStyle}>Target Email Publication *</label>
                         <div style={checkboxGroupStyle}>
-                            {['Voice of Hope', 'Be Still and Know', 'Daily News', 'It doesn\'t matter', 'Other'].map(pub => (
-                                <label key={pub} style={{
+                            {[
+                                { label: 'Daily Content', id: 'email-daily-content' },
+                                { label: 'Daily News', id: 'email-daily-news' },
+                                { label: 'Be Still & Know', id: 'email-bsak' },
+                                { label: 'CTY (Sat)', id: 'email-cty' },
+                                { label: 'WA (Sat)', id: 'email-wa' },
+                                { label: 'PG (Fri)', id: 'email-pg' },
+                                { label: 'Daily Content (Affiliate)', id: 'email-affiliate-content' },
+                                { label: 'Daily News (Affiliate)', id: 'email-affiliate-news' },
+                                { label: 'Other', id: '' }
+                            ].map(pub => (
+                                <label key={pub.label} style={{
                                     ...checkboxLabelStyle,
-                                    background: adsEmailType === pub ? 'var(--primary-glow)' : 'rgba(255,255,255,0.05)',
-                                    borderColor: adsEmailType === pub ? 'var(--primary)' : 'transparent'
+                                    background: adsEmailType === pub.label ? 'var(--primary-glow)' : 'rgba(255,255,255,0.05)',
+                                    borderColor: adsEmailType === pub.label ? 'var(--primary)' : 'transparent'
                                 }}>
                                     <input
                                         type="radio"
                                         name="adsEmailPub"
-                                        checked={adsEmailType === pub}
-                                        onChange={() => setAdsEmailType(pub)}
+                                        checked={adsEmailType === pub.label}
+                                        onChange={() => setAdsEmailType(pub.label)}
                                         style={{ accentColor: 'var(--primary)' }}
                                     />
-                                    {pub}
+                                    {pub.label}
                                 </label>
                             ))}
                         </div>
@@ -474,7 +484,20 @@ export default function BookingForm() {
                     <div>
                         <label style={labelStyle}>Select Available Dates</label>
                         <AvailabilityCalendar
-                            type="EMAIL"
+                            type="ADS_IN_ESEND"
+                            targetId={
+                                // Map label back to ID for availability check
+                                // Ideally state should store ID, but keeping label for legacy compatibility for now
+                                adsEmailType === 'Daily Content' ? 'email-daily-content' :
+                                    adsEmailType === 'Daily News' ? 'email-daily-news' :
+                                        adsEmailType === 'Be Still & Know' ? 'email-bsak' :
+                                            adsEmailType === 'CTY (Sat)' ? 'email-cty' :
+                                                adsEmailType === 'WA (Sat)' ? 'email-wa' :
+                                                    adsEmailType === 'PG (Fri)' ? 'email-pg' :
+                                                        adsEmailType === 'Daily Content (Affiliate)' ? 'email-affiliate-content' :
+                                                            adsEmailType === 'Daily News (Affiliate)' ? 'email-affiliate-news' :
+                                                                undefined
+                            }
                             selectedDates={selectedDates}
                             onDateSelect={setSelectedDates}
                         />

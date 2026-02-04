@@ -1,4 +1,4 @@
-export type MediaType = 'AUDIO' | 'DISPLAY' | 'EMAIL';
+export type MediaType = 'AUDIO' | 'DISPLAY' | 'EMAIL' | 'ADS_IN_ESEND' | 'BESPOKE_ESEND';
 
 export type GeoRegion = 'GLOBAL' | 'US' | 'UK' | 'UK_WALES' | 'UK_SCOTLAND' | 'UK_NI' | 'UK_LONDON';
 

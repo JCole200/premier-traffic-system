@@ -83,7 +83,7 @@ export default function MasterCalendar({ bookings, inventoryItems }: Props) {
 
             return {
                 id: b.id,
-                title: `${b.clientName} (${b.campaignName})`,
+                title: `${b.bookerName || 'Unknown'} | ${b.clientName} | ${b.contractNumber || ''}`,
                 start: new Date(b.startDate),
                 end: new Date(b.endDate),
                 resource: b,
