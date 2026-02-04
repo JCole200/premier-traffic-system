@@ -2,6 +2,8 @@ import Sidebar from '../../components/layout/Sidebar';
 import { INVENTORY_BASELINES } from '../../lib/constants';
 import { checkAvailability } from '../../lib/actions/booking';
 
+export const dynamic = 'force-dynamic';
+
 export default async function InventoryPage() {
     // Mock Date Range for "Month View"
     const start = new Date().toISOString();

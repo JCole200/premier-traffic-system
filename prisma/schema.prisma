@@ -8,9 +8,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // Falling back to the most standard variable "DATABASE_URL" which is confirmed to exist.
-  // Removing directUrl to avoid errors if that specific variable is missing.
-  url      = env("DATABASE_URL") 
+  // Using Vercel-specific variables for best compatibility
+  url       = env("POSTGRES_PRISMA_URL") 
+  directUrl = env("POSTGRES_URL_NON_POOLING") 
 }
 
 model InventoryItem {
