@@ -369,6 +369,7 @@ export default function BookingForm() {
                                 <label key={list} style={{
                                     ...checkboxLabelStyle,
                                     width: '100%',
+                                    justifyContent: 'flex-start',
                                     background: emailLists.includes(list) ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.05)',
                                     borderColor: emailLists.includes(list) ? 'var(--primary)' : 'transparent'
                                 }}>
