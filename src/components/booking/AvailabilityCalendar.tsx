@@ -14,9 +14,15 @@ export default function AvailabilityCalendar({ type, targetId, onDateSelect, sel
     const [data, setData] = useState<Record<string, any>>({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1; // 1-indexed for our API
+
+    // Manage View State
+    const [viewDate, setViewDate] = useState(() => {
+        const now = new Date();
+        return new Date(now.getFullYear(), now.getMonth(), 1);
+    });
+
+    const year = viewDate.getFullYear();
+    const month = viewDate.getMonth() + 1; // 1-indexed
 
     useEffect(() => {
         async function load() {
@@ -33,12 +39,15 @@ export default function AvailabilityCalendar({ type, targetId, onDateSelect, sel
             }
         }
         load();
-    }, [type, targetId]);
+    }, [type, targetId, year, month]);
 
-    if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading availability...</div>;
-    if (error) return <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--danger)' }}>{error}</div>;
+    const handlePrevMonth = () => {
+        setViewDate(new Date(year, month - 2, 1));
+    };
 
-    const daysInMonth = Array.from({ length: Object.keys(data).length }, (_, i) => i + 1);
+    const handleNextMonth = () => {
+        setViewDate(new Date(year, month, 1));
+    };
 
     const toggleDate = (day: number) => {
         // Construct date string YYYY-MM-DD
@@ -52,50 +61,95 @@ export default function AvailabilityCalendar({ type, targetId, onDateSelect, sel
         }
     };
 
+    // Calendar Grid Logic
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const startDayOffset = new Date(year, month - 1, 1).getDay(); // 0 = Sun
+    const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+    const offsetArray = Array.from({ length: startDayOffset }, (_, i) => i);
+
+    const monthLabel = viewDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+    if (error) return <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--danger)' }}>{error}</div>;
+
     return (
         <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: '12px' }}>
-            <h4 style={{ marginBottom: '1rem' }}>Availability Calendar ({type})</h4>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem' }}>
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-                    <div key={d} style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{d}</div>
-                ))}
-                {/* Offset for start of month - skipped for brevity in prototype */}
-
-                {daysInMonth.map(d => {
-                    const dayData = data[d];
-                    // If type is Email, capacity is small (e.g. 4). If type is Audio, capacity is huge.
-
-                    let bg = 'rgba(255,255,255,0.05)';
-                    const isSelected = selectedDates.includes(new Date(Date.UTC(year, month - 1, d)).toISOString().split('T')[0]);
-
-                    if (isSelected) bg = 'var(--primary)';
-                    else if (dayData && dayData.available <= 0) bg = 'var(--danger)'; // Full
-                    else if (dayData && dayData.used > 0) bg = 'var(--warning)'; // Partial
-
-                    return (
-                        <div
-                            key={d}
-                            onClick={() => toggleDate(d)}
-                            style={{
-                                aspectRatio: '1',
-                                background: bg,
-                                borderRadius: '4px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                fontSize: '0.9rem'
-                            }}
-                        >
-                            {d}
-                            <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>
-                                {dayData?.used}/{dayData?.capacity}
-                            </span>
-                        </div>
-                    )
-                })}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <button
+                    type="button"
+                    onClick={handlePrevMonth}
+                    style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', cursor: 'pointer', fontSize: '1.2rem', padding: '0.5rem' }}
+                >
+                    &lt;
+                </button>
+                <h4 style={{ margin: 0 }}>{monthLabel}</h4>
+                <button
+                    type="button"
+                    onClick={handleNextMonth}
+                    style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', cursor: 'pointer', fontSize: '1.2rem', padding: '0.5rem' }}
+                >
+                    &gt;
+                </button>
             </div>
+
+            {loading ? (
+                <div style={{ padding: '2rem', textAlign: 'center' }}>Loading availability...</div>
+            ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem' }}>
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+                        <div key={d} style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{d}</div>
+                    ))}
+
+                    {/* Empty slots for offset */}
+                    {offsetArray.map(i => <div key={`offset-${i}`} />)}
+
+                    {daysArray.map(d => {
+                        const dayData = data[d];
+                        const dateStr = new Date(Date.UTC(year, month - 1, d)).toISOString().split('T')[0];
+                        const isSelected = selectedDates.includes(dateStr);
+
+                        let bg = 'rgba(255,255,255,0.05)';
+                        let cursor = 'pointer';
+                        let opacity = 1;
+
+                        if (isSelected) {
+                            bg = 'var(--primary)';
+                        } else if (dayData) {
+                            if (dayData.available <= 0) {
+                                bg = 'var(--danger)';
+                                cursor = 'not-allowed';
+                                opacity = 0.5;
+                            } else if (dayData.used > 0) {
+                                bg = 'var(--warning)';
+                            }
+                        }
+
+                        return (
+                            <div
+                                key={d}
+                                onClick={() => dayData?.available > 0 || isSelected ? toggleDate(d) : null}
+                                style={{
+                                    aspectRatio: '1',
+                                    background: bg,
+                                    borderRadius: '4px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: cursor,
+                                    opacity: opacity,
+                                    fontSize: '0.9rem',
+                                    position: 'relative'
+                                }}
+                            >
+                                {d}
+                                <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>
+                                    {dayData?.used}/{dayData?.capacity}
+                                </span>
+                            </div>
+                        )
+                    })}
+                </div>
+            )}
         </div>
     );
 }
