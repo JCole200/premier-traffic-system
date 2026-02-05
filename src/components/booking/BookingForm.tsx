@@ -440,7 +440,7 @@ export default function BookingForm() {
 
                     <div style={{ marginBottom: '1.5rem' }}>
                         <label style={labelStyle}>Target Email Publication *</label>
-                        <div style={checkboxGroupStyle}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.5rem' }}>
                             {[
                                 { label: 'Daily Content', id: 'email-daily-content' },
                                 { label: 'Daily News', id: 'email-daily-news' },
@@ -455,14 +455,15 @@ export default function BookingForm() {
                                 <label key={pub.label} style={{
                                     ...checkboxLabelStyle,
                                     background: adsEmailType === pub.label ? 'var(--primary-glow)' : 'rgba(255,255,255,0.05)',
-                                    borderColor: adsEmailType === pub.label ? 'var(--primary)' : 'transparent'
+                                    borderColor: adsEmailType === pub.label ? 'var(--primary)' : 'transparent',
+                                    justifyContent: 'flex-start' // Ensure left alignment
                                 }}>
                                     <input
                                         type="radio"
                                         name="adsEmailPub"
                                         checked={adsEmailType === pub.label}
                                         onChange={() => setAdsEmailType(pub.label)}
-                                        style={{ accentColor: 'var(--primary)' }}
+                                        style={{ accentColor: 'var(--primary)', width: 'auto', marginRight: '0.5rem' }}
                                     />
                                     {pub.label}
                                 </label>
