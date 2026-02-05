@@ -1,6 +1,7 @@
 import Sidebar from '../../components/layout/Sidebar';
-import { INVENTORY_BASELINES } from '../../lib/constants';
 import { checkAvailability } from '../../lib/actions/booking';
+import { getInventoryItems } from '../../lib/actions/admin';
+import { InventoryItem } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,6 +9,8 @@ export default async function InventoryPage() {
     // Mock Date Range for "Month View"
     const start = new Date().toISOString();
     const end = new Date().toISOString();
+
+    const items = await getInventoryItems();
 
     return (
         <main className="grid-dashboard">
@@ -31,7 +34,12 @@ export default async function InventoryPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {await Promise.all(INVENTORY_BASELINES.map(async (item) => {
+                            {items.length === 0 && (
+                                <tr>
+                                    <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No inventory items found. database might be empty.</td>
+                                </tr>
+                            )}
+                            {await Promise.all(items.map(async (item: InventoryItem) => {
                                 // Calculate availability for this SPECIFIC item ID
                                 const itemAvailable = await checkAvailability(item.type, start, end, item.id);
                                 const itemUsed = item.totalCapacity - itemAvailable;
