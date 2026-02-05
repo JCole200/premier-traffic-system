@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   // Reverting to standard DATABASE_URL for maximum compatibility
   // If using Vercel Postgres, ensure the connection string is assigned to DATABASE_URL in the dashboard.
   url       = env("DATABASE_URL") 

@@ -1,4 +1,7 @@
-import DateBlocker from '../../components/admin/DateBlocker';
+import { getInventoryItems } from '@/lib/actions/admin';
+import InventoryList from '@/components/admin/InventoryList';
+import Sidebar from '@/components/layout/Sidebar';
+import DateBlocker from '@/components/admin/DateBlocker';
 
 // ...
 
