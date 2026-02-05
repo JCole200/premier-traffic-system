@@ -3,7 +3,20 @@
 import prisma from '../prisma';
 import { revalidatePath } from 'next/cache';
 
+import { INVENTORY_BASELINES } from '../constants';
+
 export async function getInventoryItems() {
+    const count = await prisma.inventoryItem.count();
+
+    if (count === 0) {
+        // Auto-seed if empty
+        console.log('Seeding initial inventory items...');
+        await prisma.inventoryItem.createMany({
+            data: INVENTORY_BASELINES,
+            skipDuplicates: true
+        });
+    }
+
     return await prisma.inventoryItem.findMany();
 }
 
@@ -72,6 +85,7 @@ export async function blockDates(
     const endDate = new Date(sortedDates[sortedDates.length - 1]);
 
     await prisma.booking.create({
+        // @ts-ignore
         data: {
             clientName: 'ADMIN_BLOCK', // Special indicator
             campaignName: reason || 'Blocked Dates',
