@@ -68,6 +68,49 @@ export async function getMonthlyAvailability(type: string, year: number, month: 
             // Daily News, BSAK, Affiliate News are Mon-Sun (default capacity applies)
         }
 
+        // Apply Logic for Bespoke E-Sends
+        if (type === 'BESPOKE_ESEND' || type === 'EMAIL') { // 'EMAIL' is legacy/fallback type for Bespoke
+            // 1. No Sundays
+            if (dayOfWeek === 0) {
+                dailyCapacity = 0;
+            }
+
+            // 2. Max 2 per week rule
+            // We need to count how many Bespoke emails are already booked in this specific week (Mon-Sun)
+            // Calculate start/end of this week
+            const currentDayDate = new Date(Date.UTC(year, month - 1, d));
+            const dayNum = currentDayDate.getUTCDay() || 7; // Make Sun=7
+            const weekStart = new Date(currentDayDate);
+            weekStart.setUTCDate(currentDayDate.getUTCDate() - dayNum + 1); // Monday
+            const weekEnd = new Date(weekStart);
+            weekEnd.setUTCDate(weekStart.getUTCDate() + 6); // Sunday
+
+            const wStartStr = weekStart.toISOString().split('T')[0];
+            const wEndStr = weekEnd.toISOString().split('T')[0];
+
+            let weeklyUsedCount = 0;
+            bookings.forEach(b => {
+                if (b.bookingType === 'BESPOKE_ESEND' && b.emailDates) {
+                    const dates = JSON.parse(b.emailDates);
+                    // Check if any date in this booking falls in this week
+                    for (const dateStr of dates) {
+                        if (dateStr >= wStartStr && dateStr <= wEndStr) {
+                            weeklyUsedCount++;
+                        }
+                    }
+                }
+            });
+
+            if (weeklyUsedCount >= 2) {
+                // formatting this to show '0 available' if cap is reached
+                // Ideally if this specific day is ONE of the booked ones, it shows used=1, cap=1 (Red/Full)
+                // If this day is free, but weekly limit reached, it shows used=0, available=0 (Red/Blocked)
+                if (dailyUsed === 0) {
+                    dailyCapacity = 0;
+                }
+            }
+        }
+
 
         for (const b of bookings) {
             const bStart = b.startDate.toISOString().split('T')[0];
