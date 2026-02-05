@@ -29,6 +29,7 @@ model Booking {
   startDate          DateTime
   endDate            DateTime
   status             String   @default("CONFIRMED")
+  isBlocked          Boolean  @default(false)
   
   // New Fields
   contractNumber     String?

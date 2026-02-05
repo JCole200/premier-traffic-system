@@ -118,6 +118,22 @@ export async function getMonthlyAvailability(type: string, year: number, month: 
 
             // Check if this booking covers this day
             if (currentParams >= bStart && currentParams <= bEnd) {
+                // HANDLE BLOCKED DATES (Admin Block)
+                if ((b as any).isBlocked) {
+                    // Check logic for matching targetId
+                    let matchesTarget = false;
+                    if (type === 'BESPOKE_ESEND' && b.bookingType === 'BESPOKE_ESEND') matchesTarget = true;
+                    else if (type === 'ADS_IN_ESEND' && b.bookingType === 'ADS_IN_ESEND') {
+                        const details = b.additionalDetails ? JSON.parse(b.additionalDetails as string) : {};
+                        const bookingTargetLabel = details?.adsEmailType;
+                        if (bookingTargetLabel && targetId && targetId.includes(bookingTargetLabel.toLowerCase().replace(/ /g, '-'))) matchesTarget = true;
+                        else if (details?.targetId === targetId) matchesTarget = true;
+                    }
+
+                    if (matchesTarget) {
+                        dailyUsed = dailyCapacity; // Force Full
+                    }
+                }
                 // Check Bespoke Email Usage
                 if ((type === 'EMAIL' || type === 'BESPOKE_ESEND') && b.bookingType === 'BESPOKE_ESEND' && b.emailDates) {
                     const specificDates = JSON.parse(b.emailDates);
