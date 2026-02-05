@@ -5,13 +5,32 @@ import prisma from '../prisma';
 import { INVENTORY_BASELINES } from '../constants';
 
 export async function getMonthlyAvailability(type: string, year: number, month: number, targetId?: string) {
-    // 0. Auto-Seed if empty (Self-healing)
-    const count = await prisma.inventoryItem.count();
-    if (count === 0) {
-        console.log('Database empty. Seeding default inventory...');
-        console.log('Database empty. Seeding default inventory...');
-        for (const item of INVENTORY_BASELINES) {
-            await prisma.inventoryItem.create({ data: item });
+    // 0. Robust Seeding: Ensure the requested item exists
+    if (targetId) {
+        const existing = await prisma.inventoryItem.findUnique({ where: { id: targetId } });
+        if (!existing) {
+            // Find in constants
+            const def = INVENTORY_BASELINES.find(i => i.id === targetId);
+            if (def) {
+                console.log(`Lazy-seeding missing inventory item: ${targetId}`);
+                await prisma.inventoryItem.create({ data: def });
+            }
+        }
+    } else {
+        // If no targetId (aggregate view), ensure we have at least some items of this type
+        const count = await prisma.inventoryItem.count({ where: { type } });
+        if (count === 0) {
+            console.log(`Seeding missing inventory type: ${type}`);
+            const defs = INVENTORY_BASELINES.filter(i => i.type === type);
+            for (const d of defs) {
+                // Use upsert or createIgnoring duplicates if possible, or just create and catch error
+                // Simple approach: create if not exists (we just checked count=0 so likely safe to create all)
+                try {
+                    await prisma.inventoryItem.create({ data: d });
+                } catch (e) {
+                    // Ignore duplicate errors
+                }
+            }
         }
     }
 
