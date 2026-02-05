@@ -8,9 +8,10 @@ interface Props {
     targetId?: string;
     onDateSelect?: (dates: string[]) => void;
     selectedDates?: string[];
+    allowFullSelection?: boolean; // New prop for Admin override
 }
 
-export default function AvailabilityCalendar({ type, targetId, onDateSelect, selectedDates = [] }: Props) {
+export default function AvailabilityCalendar({ type, targetId, onDateSelect, selectedDates = [], allowFullSelection = false }: Props) {
     const [data, setData] = useState<Record<string, any>>({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -126,7 +127,7 @@ export default function AvailabilityCalendar({ type, targetId, onDateSelect, sel
                         return (
                             <div
                                 key={d}
-                                onClick={() => toggleDate(d)}
+                                onClick={() => (allowFullSelection || dayData?.available > 0 || isSelected) ? toggleDate(d) : null}
                                 style={{
                                     aspectRatio: '1',
                                     background: bg,
@@ -135,7 +136,7 @@ export default function AvailabilityCalendar({ type, targetId, onDateSelect, sel
                                     flexDirection: 'column',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    cursor: 'pointer',
+                                    cursor: (allowFullSelection || dayData?.available > 0 || isSelected) ? 'pointer' : 'not-allowed',
                                     opacity: opacity,
                                     fontSize: '0.9rem',
                                     position: 'relative'

@@ -89,6 +89,7 @@ export default function DateBlocker() {
                         }
                         selectedDates={selectedDates}
                         onDateSelect={setSelectedDates}
+                        allowFullSelection={true}
                     />
                     <p style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--text-dim)' }}>{selectedDates.length} dates selected</p>
                 </div>
