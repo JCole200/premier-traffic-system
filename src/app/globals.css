@@ -234,3 +234,28 @@ input[type=range]:focus::-webkit-slider-runnable-track {
   background: var(--bg-nav-hover) !important;
   color: var(--text-nav-hover) !important;
 }
+
+/* Circular Icon Button (e.g. Calendar Arrows) */
+.btn-icon-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.btn-icon-circle:hover {
+  background: var(--glass-bg);
+  color: var(--text-main);
+  transform: scale(1.1);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn-icon-circle:active {
+  transform: scale(0.95);
+}

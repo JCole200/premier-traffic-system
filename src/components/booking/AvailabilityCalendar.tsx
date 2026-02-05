@@ -74,21 +74,27 @@ export default function AvailabilityCalendar({ type, targetId, onDateSelect, sel
 
     return (
         <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', padding: '0 0.5rem' }}>
                 <button
                     type="button"
                     onClick={handlePrevMonth}
-                    style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', cursor: 'pointer', fontSize: '1.2rem', padding: '0.5rem' }}
+                    className="btn-icon-circle"
+                    title="Previous Month"
                 >
-                    &lt;
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
                 </button>
-                <h4 style={{ margin: 0 }}>{monthLabel}</h4>
+                <h4 style={{ margin: 0, fontWeight: 600, fontSize: '1.1rem' }}>{monthLabel}</h4>
                 <button
                     type="button"
                     onClick={handleNextMonth}
-                    style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', cursor: 'pointer', fontSize: '1.2rem', padding: '0.5rem' }}
+                    className="btn-icon-circle"
+                    title="Next Month"
                 >
-                    &gt;
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
                 </button>
             </div>
 
