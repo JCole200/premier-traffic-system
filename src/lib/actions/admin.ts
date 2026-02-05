@@ -15,6 +15,42 @@ export async function updateInventoryCapacity(id: string, newCapacity: number) {
     revalidatePath('/inventory');
     revalidatePath('/admin');
 }
+
+export async function createInventoryItem(data: { id: string; name: string; type: string; totalCapacity: number; unit: string }) {
+    await prisma.inventoryItem.create({
+        data
+    });
+    revalidatePath('/inventory');
+    revalidatePath('/admin');
+    revalidatePath('/availability');
+}
+
+export async function deleteInventoryItem(id: string) {
+    // Ideally we should check for relationships/bookings first, but for now we force delete or let it fail if foreign keys exist
+    // Prisma might throw if Bookings refer to this ID.
+    // For now, simple delete.
+    try {
+        await prisma.inventoryItem.delete({
+            where: { id }
+        });
+        revalidatePath('/inventory');
+        revalidatePath('/admin');
+        revalidatePath('/availability');
+    } catch (e) {
+        console.error("Failed to delete inventory item:", e);
+        throw new Error("Could not delete item. It may be in use by existing bookings.");
+    }
+}
+
+export async function updateInventoryItem(id: string, data: { name?: string; type?: string; totalCapacity?: number; unit?: string }) {
+    await prisma.inventoryItem.update({
+        where: { id },
+        data
+    });
+    revalidatePath('/inventory');
+    revalidatePath('/admin');
+    revalidatePath('/availability');
+}
 export async function blockDates(
     dates: string[],
     type: string,
