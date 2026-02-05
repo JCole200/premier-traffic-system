@@ -126,7 +126,7 @@ export default function AvailabilityCalendar({ type, targetId, onDateSelect, sel
                         return (
                             <div
                                 key={d}
-                                onClick={() => dayData?.available > 0 || isSelected ? toggleDate(d) : null}
+                                onClick={() => toggleDate(d)}
                                 style={{
                                     aspectRatio: '1',
                                     background: bg,
@@ -135,7 +135,7 @@ export default function AvailabilityCalendar({ type, targetId, onDateSelect, sel
                                     flexDirection: 'column',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    cursor: cursor,
+                                    cursor: 'pointer',
                                     opacity: opacity,
                                     fontSize: '0.9rem',
                                     position: 'relative'
