@@ -159,12 +159,12 @@ export default function InventoryList({ initialItems }: { initialItems: Inventor
 
             {/* LIST */}
             <div style={{ display: 'grid', gap: '0.5rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 100px', padding: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)', borderBottom: '1px solid var(--border-subtle)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 120px', padding: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)', borderBottom: '1px solid var(--border-subtle)', alignItems: 'center' }}>
                     <div>NAME / ID</div>
                     <div>TYPE</div>
                     <div>CAPACITY</div>
                     <div>UNIT</div>
-                    <div>ACTIONS</div>
+                    <div style={{ textAlign: 'center' }}>ACTIONS</div>
                 </div>
 
                 {items.length === 0 && <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No inventory items found.</div>}
@@ -172,7 +172,7 @@ export default function InventoryList({ initialItems }: { initialItems: Inventor
                 {items.map(item => (
                     <div key={item.id} style={{
                         display: 'grid',
-                        gridTemplateColumns: '2fr 1.5fr 1fr 1fr 100px',
+                        gridTemplateColumns: '2fr 1.5fr 1fr 1fr 120px',
                         alignItems: 'center',
                         gap: '1rem',
                         padding: '1rem',
@@ -225,7 +225,7 @@ export default function InventoryList({ initialItems }: { initialItems: Inventor
                                 </div>
                                 <div style={{ fontSize: '0.9rem' }}>{item.totalCapacity}</div>
                                 <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{item.unit}</div>
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                                     <button
                                         onClick={() => startEdit(item)}
                                         className="btn-icon-circle"
