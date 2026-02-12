@@ -358,13 +358,20 @@ export default function BookingForm() {
                     </div>
 
                     <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={labelStyle}>Target Email List(s) *</label>
+                        <label style={labelStyle}>Which e-mail marketing list(s) would you like to send the e-send to: *</label>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                             {[
-                                'Sales A', 'Sales B', 'Sales A+B', 'Sales CTY',
-                                'Marketplace', 'Jobsearch', 'Magazines',
-                                'Impact/Fundraising', 'E-appeal', 'United Prayer',
-                                'Other'
+                                'SALES A+B',
+                                'SALES A',
+                                'SALES B',
+                                'SALES CTY',
+                                'SALES NEXGEN',
+                                'SALES LEADERS',
+                                'FUNDRAISING',
+                                'MARKETING',
+                                'SALES WAlive',
+                                'SALES PG',
+                                'Other (describe)'
                             ].map(list => (
                                 <label key={list} style={{
                                     ...checkboxLabelStyle,
