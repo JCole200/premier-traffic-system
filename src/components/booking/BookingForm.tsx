@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { BookingRequest, GeoRegion } from '../../types/inventory';
 import { useRouter } from 'next/navigation';
 import AvailabilityCalendar from './AvailabilityCalendar';
+import BespokeCalendar from './BespokeCalendar';
 import { createBooking } from '../../lib/actions/booking';
 
 type BookingType = 'AUDIO' | 'DISPLAY' | 'BESPOKE_ESEND' | 'ADS_IN_ESEND';
@@ -411,10 +412,11 @@ export default function BookingForm() {
 
                     <div style={{ marginBottom: '1.5rem' }}>
                         <label style={labelStyle}>Select Dates</label>
-                        <AvailabilityCalendar
-                            type="EMAIL"
+                        <BespokeCalendar
                             selectedDates={selectedDates}
                             onDateSelect={setSelectedDates}
+                            selectedLists={emailLists}
+                            department={department}
                         />
                         <p style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--text-dim)' }}>Selected: {selectedDates.length} dates</p>
                     </div>
