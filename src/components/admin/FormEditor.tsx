@@ -52,9 +52,74 @@ export default function FormEditor({ isAdmin }: { isAdmin: boolean }) {
                 { id: 'ADS_IN_ESEND', label: 'Ads in E-sends', description: 'Ads within existing newsletters' }
             ],
             fields: [
+                // General Section
                 { id: 'clientName', type: 'text', label: 'Client / Brand Name', required: true, section: 'general', placeholder: 'e.g. Nike, Premier Digital...' },
-                { id: 'contractNumber', type: 'text', label: 'Contract Number', required: false, section: 'general', placeholder: 'Contract #' },
-                { id: 'bookerName', type: 'text', label: 'Booked By', required: false, section: 'general', placeholder: 'Your name' },
+                { id: 'contractNumber', type: 'text', label: 'Contract Number', required: false, section: 'general', placeholder: 'Optional' },
+                { id: 'bookerName', type: 'text', label: 'Booked By', required: true, section: 'general', placeholder: 'Your name' },
+
+                // Audio Section
+                { id: 'audioStartDate', type: 'date', label: 'Start Date', required: true, section: 'AUDIO' },
+                { id: 'audioEndDate', type: 'date', label: 'End Date', required: true, section: 'AUDIO' },
+                {
+                    id: 'audioTargeting',
+                    type: 'checkbox',
+                    label: 'Targeting Preference',
+                    required: false,
+                    section: 'AUDIO',
+                    options: ['Location Based', 'Radio Stations', 'Podcasts', 'Run of Network']
+                },
+                { id: 'audioImpressions', type: 'number', label: 'Number of Impressions/Spots', required: true, section: 'AUDIO', placeholder: 'e.g. 50000' },
+
+                // Display Section
+                { id: 'displayImpressions', type: 'number', label: 'Number of Impressions', required: true, section: 'DISPLAY', placeholder: 'e.g. 100000' },
+                {
+                    id: 'displayType',
+                    type: 'select',
+                    label: 'Type of Display Ads',
+                    required: true,
+                    section: 'DISPLAY',
+                    options: ['MPU', 'Leaderboard', 'Skyscraper', 'Billboard', 'Double MPU']
+                },
+                {
+                    id: 'displayWebsites',
+                    type: 'checkbox',
+                    label: 'Websites',
+                    required: false,
+                    section: 'DISPLAY',
+                    options: ['WA', 'CTY', 'UNB', 'NEXGEN', 'Premier Christian Radio']
+                },
+                { id: 'displayStartDate', type: 'date', label: 'Start Date', required: true, section: 'DISPLAY' },
+                { id: 'displayEndDate', type: 'date', label: 'End Date', required: true, section: 'DISPLAY' },
+
+                // Bespoke E-send Section
+                {
+                    id: 'bespokeDepartment',
+                    type: 'select',
+                    label: 'Booking Department',
+                    required: true,
+                    section: 'BESPOKE_ESEND',
+                    options: ['Sales', 'Marketing', 'Fundraising', 'Internal']
+                },
+                {
+                    id: 'bespokeLists',
+                    type: 'checkbox',
+                    label: 'Which e-mail marketing list(s) would you like to send the e-send to? *',
+                    required: true,
+                    section: 'BESPOKE_ESEND',
+                    options: ['SALES A+B', 'SALES A', 'SALES B', 'SALES CTY', 'SALES NEXGEN', 'SALES LEADERS', 'FUNDRAISING', 'MARKETING', 'SALES WAlive', 'SALES PG', 'Other (describe)']
+                },
+                { id: 'bespokeQuantity', type: 'number', label: 'How many bespoke esends would you like to book for this campaign?', required: true, section: 'BESPOKE_ESEND', placeholder: '1' },
+
+                // Ads in E-send Section
+                {
+                    id: 'adsTargeting',
+                    type: 'radio',
+                    label: 'Target Email Publication *',
+                    required: true,
+                    section: 'ADS_IN_ESEND',
+                    options: ['Daily Content', 'Daily News', 'Be Still & Know', 'CTY (Sat)', 'WA (Sat)', 'PG (Fri)', 'Daily Content (Affiliate)', 'Daily News (Affiliate)', 'Other']
+                },
+                { id: 'adsQuantity', type: 'number', label: 'Quantity of Ads', required: true, section: 'ADS_IN_ESEND', placeholder: '1' },
             ]
         };
     });

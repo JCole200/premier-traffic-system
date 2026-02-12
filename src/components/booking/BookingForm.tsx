@@ -31,29 +31,34 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
     const [showNewForm, setShowNewForm] = useState(!isAdmin);
 
     // Form State
+    // Form State - Dynamic
+    const [formData, setFormData] = useState<Record<string, any>>({});
+
+    // Core State needed for logic
+    const [bookingType, setBookingType] = useState<BookingType | ''>('');
     const [clientName, setClientName] = useState('');
     const [contractNumber, setContractNumber] = useState('');
     const [bookerName, setBookerName] = useState('');
-    const [bookingType, setBookingType] = useState<BookingType | ''>('');
 
-    // Shared / Specific State
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [impressions, setImpressions] = useState<number>(0); // For Audio or Display
-
-    // Specifics
-    const [department, setDepartment] = useState('SALES');
-    const [audioTargeting, setAudioTargeting] = useState<string[]>([]);
-    const [displayType, setDisplayType] = useState('MPU');
-    const [displayWebsites, setDisplayWebsites] = useState<string[]>([]);
-    const [emailLists, setEmailLists] = useState<string[]>([]);
-    const [emailCount, setEmailCount] = useState<number>(1);
-    const [emailComments, setEmailComments] = useState('');
-    const [emailNote, setEmailNote] = useState('');
-    const [adsEmailType, setAdsEmailType] = useState('Voice of Hope');
-
-    // Calendar State
+    // Calendar State (kept separate for complex logic)
     const [selectedDates, setSelectedDates] = useState<string[]>([]);
+
+    // Form Configuration State
+    const [formConfig, setFormConfig] = useState<any>(null);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('bookingFormConfig');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    setFormConfig(parsed);
+                } catch (e) {
+                    console.error('Failed to parse form config', e);
+                }
+            }
+        }
+    }, []);
 
     // Load booking data for editing
     const loadBookingForEdit = (booking: any) => {
@@ -63,23 +68,35 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
         setContractNumber(booking.contractNumber || '');
         setBookerName(booking.bookerName || '');
         setBookingType(booking.bookingType || '');
-        setStartDate(booking.startDate || '');
-        setEndDate(booking.endDate || '');
-        setDepartment(booking.department || 'SALES');
 
-        // Parse additional details
-        const details = booking.additionalDetails;
-        if (details) {
-            setAudioTargeting(details.targeting || []);
-            setDisplayType(details.displayType || 'MPU');
-            setDisplayWebsites(details.displayWebsites || []);
-            setEmailLists(details.emailLists || []);
-            setEmailNote(details.emailNote || '');
-            setAdsEmailType(details.adsEmailType || 'Voice of Hope');
+        // Populate formData based on known mappings for backward compatibility
+        const newData: Record<string, any> = {};
+        const details = booking.additionalDetails || {};
+
+        // Helper to find field ID for a section/type
+        // ideally we would map dynamically but for now we map known fields
+        if (booking.bookingType === 'AUDIO') {
+            newData['audioStartDate'] = booking.startDate;
+            newData['audioEndDate'] = booking.endDate;
+            newData['audioImpressions'] = booking.audioSpots;
+            newData['audioTargeting'] = details.targeting || [];
+        } else if (booking.bookingType === 'DISPLAY') {
+            newData['displayStartDate'] = booking.startDate;
+            newData['displayEndDate'] = booking.endDate;
+            newData['displayImpressions'] = booking.displayImpressions;
+            newData['displayType'] = details.displayType;
+            newData['displayWebsites'] = details.displayWebsites || [];
+        } else if (booking.bookingType === 'BESPOKE_ESEND') {
+            newData['bespokeDepartment'] = booking.department;
+            newData['bespokeLists'] = details.emailLists || [];
+            newData['bespokeQuantity'] = details.emailCount || 1; // Assuming we store this
+        } else if (booking.bookingType === 'ADS_IN_ESEND') {
+            newData['adsTargeting'] = details.adsEmailType;
+            newData['adsQuantity'] = details.emailCount || 1;
         }
 
+        setFormData(newData);
         setSelectedDates(booking.emailDates || []);
-        setImpressions(booking.audioSpots || booking.displayImpressions || 0);
     };
 
     const resetForm = () => {
@@ -88,24 +105,12 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
         setContractNumber('');
         setBookerName('');
         setBookingType('');
-        setStartDate('');
-        setEndDate('');
-        setDepartment('SALES');
-        setAudioTargeting([]);
-        setDisplayType('MPU');
-        setDisplayWebsites([]);
-        setEmailLists([]);
-        setEmailCount(1);
-        setEmailComments('');
-        setEmailNote('');
-        setAdsEmailType('Voice of Hope');
+        setFormData({});
         setSelectedDates([]);
-        setImpressions(0);
     };
 
     const handleDelete = async (bookingId: string) => {
         if (!confirm('Are you sure you want to delete this booking?')) return;
-
         try {
             const { deleteBooking } = await import('../../lib/actions/booking');
             await deleteBooking(bookingId);
@@ -116,13 +121,21 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
         }
     };
 
+    // Generic Field Handler
+    const handleFieldChange = (fieldId: string, value: any) => {
+        setFormData(prev => ({
+            ...prev,
+            [fieldId]: value
+        }));
+    };
 
-    // Handlers
-    const toggleArraySelection = (item: string, currentList: string[], setter: (l: string[]) => void) => {
+    // Array Toggle Helper for Checkboxes
+    const toggleArrayValue = (fieldId: string, item: string) => {
+        const currentList = (formData[fieldId] as string[]) || [];
         if (currentList.includes(item)) {
-            setter(currentList.filter(i => i !== item));
+            handleFieldChange(fieldId, currentList.filter(i => i !== item));
         } else {
-            setter([...currentList, item]);
+            handleFieldChange(fieldId, [...currentList, item]);
         }
     };
 
@@ -131,15 +144,34 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
         setIsSubmitting(true);
 
         try {
-            // Construct Additional Details
-            const additionalDetails: ExtraDetails = {
-                targeting: bookingType === 'AUDIO' ? audioTargeting : undefined,
-                displayType: bookingType === 'DISPLAY' ? displayType : undefined,
-                displayWebsites: bookingType === 'DISPLAY' ? displayWebsites : undefined,
-                emailLists: bookingType === 'BESPOKE_ESEND' ? emailLists : undefined,
-                emailNote: bookingType === 'BESPOKE_ESEND' ? `<Comments> ${emailComments} </Comments> <Note> ${emailNote} </Note>` : undefined,
-                adsEmailType: bookingType === 'ADS_IN_ESEND' ? adsEmailType : undefined,
-            };
+            // Extract core values based on active section
+            // We use 'any' cast to access dynamic properties safely
+            const data = formData as any;
+
+            let startDate = new Date().toISOString();
+            let endDate = new Date().toISOString();
+            let impressions = 0;
+            let department = 'SALES';
+            let additionalDetails: ExtraDetails = {};
+
+            if (bookingType === 'AUDIO') {
+                startDate = data.audioStartDate;
+                endDate = data.audioEndDate;
+                impressions = parseInt(data.audioImpressions || '0');
+                additionalDetails.targeting = data.audioTargeting;
+            } else if (bookingType === 'DISPLAY') {
+                startDate = data.displayStartDate;
+                endDate = data.displayEndDate;
+                impressions = parseInt(data.displayImpressions || '0');
+                additionalDetails.displayType = data.displayType;
+                additionalDetails.displayWebsites = data.displayWebsites;
+            } else if (bookingType === 'BESPOKE_ESEND') {
+                department = data.bespokeDepartment || 'SALES';
+                additionalDetails.emailLists = data.bespokeLists;
+                // emailCount? 
+            } else if (bookingType === 'ADS_IN_ESEND') {
+                additionalDetails.adsEmailType = data.adsTargeting;
+            }
 
             // Map to BookingRequest
             const bookingData: Omit<BookingRequest, 'id' | 'status'> = {
@@ -150,7 +182,7 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
                 contractNumber,
                 bookerName,
                 bookingType,
-                department, // Add Department
+                department,
                 geoTarget: 'GLOBAL' as GeoRegion,
                 additionalDetails,
 
@@ -161,7 +193,6 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
             };
 
             if (editingBookingId) {
-                // Update existing booking
                 const { updateBooking } = await import('../../lib/actions/booking');
                 await updateBooking(editingBookingId, bookingData as any);
                 alert(`Booking updated successfully for ${clientName}!`);
@@ -169,7 +200,6 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
                 setShowNewForm(false);
                 router.refresh();
             } else {
-                // Create new booking
                 await createBooking(bookingData);
                 alert(`Booking Confirmed for ${clientName}!`);
                 router.push('/');
@@ -230,32 +260,247 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
         transition: 'all 0.2s'
     };
 
-    // Load form configuration
-    const [formConfig, setFormConfig] = useState<any>(null);
+    // Default Configuration to ensure form is never empty
+    const defaultFormConfig = {
+        bookingTypeQuestion: 'What would you like to book? *',
+        bookingTypes: [
+            { id: 'AUDIO', label: 'Audio Ad', description: 'Premier Gospel, WA, CTY' },
+            { id: 'DISPLAY', label: 'Display Ads', description: 'MPU, Leaderboard, Skyscraper' },
+            { id: 'BESPOKE_ESEND', label: 'Bespoke E-sends', description: 'Standalone email campaigns' },
+            { id: 'ADS_IN_ESEND', label: 'Ads in E-sends', description: 'Ads within existing newsletters' }
+        ],
+        fields: [
+            // General Section
+            { id: 'clientName', type: 'text', label: 'Client / Brand Name', required: true, section: 'general', placeholder: 'e.g. Nike, Premier Digital...' },
+            { id: 'contractNumber', type: 'text', label: 'Contract Number', required: false, section: 'general', placeholder: 'Optional' },
+            { id: 'bookerName', type: 'text', label: 'Booked By', required: true, section: 'general', placeholder: 'Your name' },
 
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const saved = localStorage.getItem('bookingFormConfig');
-            if (saved) {
-                try {
-                    setFormConfig(JSON.parse(saved));
-                } catch (e) {
-                    console.error('Failed to parse form config', e);
-                }
-            }
+            // Audio Section
+            { id: 'audioStartDate', type: 'date', label: 'Start Date', required: true, section: 'AUDIO' },
+            { id: 'audioEndDate', type: 'date', label: 'End Date', required: true, section: 'AUDIO' },
+            {
+                id: 'audioTargeting',
+                type: 'checkbox',
+                label: 'Targeting Preference',
+                required: false,
+                section: 'AUDIO',
+                options: ['Location Based', 'Radio Stations', 'Podcasts', 'Run of Network']
+            },
+            { id: 'audioImpressions', type: 'number', label: 'Number of Impressions/Spots', required: true, section: 'AUDIO', placeholder: 'e.g. 50000' },
+
+            // Display Section
+            { id: 'displayImpressions', type: 'number', label: 'Number of Impressions', required: true, section: 'DISPLAY', placeholder: 'e.g. 100000' },
+            {
+                id: 'displayType',
+                type: 'select',
+                label: 'Type of Display Ads',
+                required: true,
+                section: 'DISPLAY',
+                options: ['MPU', 'Leaderboard', 'Skyscraper', 'Billboard', 'Double MPU']
+            },
+            {
+                id: 'displayWebsites',
+                type: 'checkbox',
+                label: 'Websites',
+                required: false,
+                section: 'DISPLAY',
+                options: ['WA', 'CTY', 'UNB', 'NEXGEN', 'Premier Christian Radio']
+            },
+            { id: 'displayStartDate', type: 'date', label: 'Start Date', required: true, section: 'DISPLAY' },
+            { id: 'displayEndDate', type: 'date', label: 'End Date', required: true, section: 'DISPLAY' },
+
+            // Bespoke E-send Section
+            {
+                id: 'bespokeDepartment',
+                type: 'select',
+                label: 'Booking Department',
+                required: true,
+                section: 'BESPOKE_ESEND',
+                options: ['Sales', 'Marketing', 'Fundraising', 'Internal']
+            },
+            {
+                id: 'bespokeLists',
+                type: 'checkbox',
+                label: 'Which e-mail marketing list(s) would you like to send the e-send to?',
+                required: true,
+                section: 'BESPOKE_ESEND',
+                options: ['SALES A+B', 'SALES A', 'SALES B', 'SALES CTY', 'SALES NEXGEN', 'SALES LEADERS', 'FUNDRAISING', 'MARKETING', 'SALES WAlive', 'SALES PG', 'Other (describe)']
+            },
+            { id: 'bespokeQuantity', type: 'number', label: 'How many bespoke esends would you like to book for this campaign?', required: true, section: 'BESPOKE_ESEND', placeholder: '1' },
+
+            // Ads in E-send Section
+            {
+                id: 'adsTargeting',
+                type: 'radio',
+                label: 'Target Email Publication',
+                required: true,
+                section: 'ADS_IN_ESEND',
+                options: ['Daily Content', 'Daily News', 'Be Still & Know', 'CTY (Sat)', 'WA (Sat)', 'PG (Fri)', 'Daily Content (Affiliate)', 'Daily News (Affiliate)', 'Other']
+            },
+            { id: 'adsQuantity', type: 'number', label: 'Quantity of Ads', required: true, section: 'ADS_IN_ESEND', placeholder: '1' },
+        ]
+    };
+
+    const bookingTypesToRender = (formConfig || defaultFormConfig).bookingTypes;
+    const bookingQuestion = (formConfig || defaultFormConfig).bookingTypeQuestion;
+
+    // Dynamic Field Renderer
+    const renderField = (field: any) => {
+        const val = formData[field.id];
+
+        switch (field.type) {
+            case 'text':
+            case 'number':
+            case 'date':
+                return (
+                    <div key={field.id}>
+                        <label style={labelStyle}>{field.label} {field.required && '*'}</label>
+                        <input
+                            type={field.type}
+                            style={inputStyle}
+                            placeholder={field.placeholder}
+                            required={field.required}
+                            value={val || ''}
+                            onChange={e => handleFieldChange(field.id, e.target.value)}
+                        />
+                    </div>
+                );
+            case 'select':
+                return (
+                    <div key={field.id} style={{ marginBottom: '1.5rem' }}>
+                        <label style={labelStyle}>{field.label} {field.required && '*'}</label>
+                        <select
+                            style={inputStyle}
+                            required={field.required}
+                            value={val || ((field.options && field.options[0]) || '')}
+                            onChange={e => handleFieldChange(field.id, e.target.value)}
+                        >
+                            {field.options?.map((opt: string) => (
+                                <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                        </select>
+                    </div>
+                );
+            case 'checkbox':
+                return (
+                    <div key={field.id} style={{ marginBottom: '1.5rem' }}>
+                        <label style={labelStyle}>{field.label} {field.required && '*'}</label>
+                        <div style={checkboxGroupStyle}>
+                            {field.options?.map((opt: string) => (
+                                <label key={opt} style={{
+                                    ...checkboxLabelStyle,
+                                    background: (val || []).includes(opt) ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.05)',
+                                    borderColor: (val || []).includes(opt) ? 'var(--primary)' : 'transparent'
+                                }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={(val || []).includes(opt)}
+                                        onChange={() => toggleArrayValue(field.id, opt)}
+                                        style={{ accentColor: 'var(--primary)' }}
+                                    />
+                                    {opt}
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                );
+            case 'radio':
+                return (
+                    <div key={field.id} style={{ marginBottom: '1.5rem' }}>
+                        <label style={labelStyle}>{field.label} {field.required && '*'}</label>
+                        <div style={checkboxGroupStyle}>
+                            {field.options?.map((opt: string) => (
+                                <label key={opt} style={{
+                                    ...checkboxLabelStyle,
+                                    background: val === opt ? 'var(--primary-glow)' : 'rgba(255,255,255,0.05)',
+                                    borderColor: val === opt ? 'var(--primary)' : 'transparent'
+                                }}>
+                                    <input
+                                        type="radio"
+                                        name={field.id}
+                                        checked={val === opt}
+                                        onChange={() => handleFieldChange(field.id, opt)}
+                                        style={{ accentColor: 'var(--primary)' }}
+                                    />
+                                    {opt}
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                );
+            default:
+                return null;
         }
-    }, []);
+    };
 
-    // Default booking types if no config
-    const defaultBookingTypes = [
-        { id: 'AUDIO', label: 'Audio Ad' },
-        { id: 'DISPLAY', label: 'Display Ads' },
-        { id: 'BESPOKE_ESEND', label: 'Bespoke E-sends' },
-        { id: 'ADS_IN_ESEND', label: 'Ads in E-sends' },
-    ];
+    const renderSection = (sectionId: string) => {
+        const configToUse = formConfig || defaultFormConfig;
+        if (!configToUse.fields) return null;
 
-    const bookingTypesToRender = formConfig && formConfig.bookingTypes ? formConfig.bookingTypes : defaultBookingTypes;
-    const bookingQuestion = formConfig && formConfig.bookingTypeQuestion ? formConfig.bookingTypeQuestion : 'What would you like to book? *';
+        const fields = configToUse.fields.filter((f: any) => f.section === sectionId);
+
+        return (
+            <div style={sectionStyle}>
+                <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', color: 'var(--primary)' }}>
+                    {bookingTypesToRender.find((t: any) => t.id === sectionId)?.label || sectionId}
+                </h3>
+
+                <div style={{ display: 'grid', gap: '1.5rem' }}>
+                    {fields.map(renderField)}
+                </div>
+
+                {/* Inject Logic-Heavy Components conditionally */}
+                {sectionId === 'BESPOKE_ESEND' && (
+                    <div style={{ marginTop: '1.5rem' }}>
+                        <label style={labelStyle}>Select Dates</label>
+                        <BespokeCalendar
+                            selectedDates={selectedDates}
+                            onDateSelect={setSelectedDates}
+                            selectedLists={formData['bespokeLists'] || []}
+                            department={formData['bespokeDepartment'] || 'SALES'}
+                        />
+                        <p style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--text-dim)' }}>Selected: {selectedDates.length} dates</p>
+
+                        <div style={{ marginTop: '1.5rem' }}>
+                            <label style={labelStyle}>Comments</label>
+                            <textarea
+                                style={{ ...inputStyle, minHeight: '80px' }}
+                                placeholder="Any specific requirements..."
+                                value={formData['bespokeComments'] || ''}
+                                onChange={e => handleFieldChange('bespokeComments', e.target.value)}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {sectionId === 'ADS_IN_ESEND' && (
+                    <div style={{ marginTop: '1.5rem' }}>
+                        <label style={labelStyle}>Select Available Dates</label>
+                        <AvailabilityCalendar
+                            type="ADS_IN_ESEND"
+                            targetId={
+                                // Map label back to ID if needed, or use the value directly if it aligns
+                                // Current map uses labels like 'Daily News' matching the targetId logic
+                                formData['adsTargeting'] === 'Daily Content' ? 'email-daily-content' :
+                                    formData['adsTargeting'] === 'Daily News' ? 'email-daily-news' :
+                                        formData['adsTargeting'] === 'Be Still & Know' ? 'email-bsak' :
+                                            formData['adsTargeting'] === 'CTY (Sat)' ? 'email-cty' :
+                                                formData['adsTargeting'] === 'WA (Sat)' ? 'email-wa' :
+                                                    formData['adsTargeting'] === 'PG (Fri)' ? 'email-pg' :
+                                                        formData['adsTargeting'] === 'Daily Content (Affiliate)' ? 'email-affiliate-content' :
+                                                            formData['adsTargeting'] === 'Daily News (Affiliate)' ? 'email-affiliate-news' :
+                                                                undefined
+                            }
+                            selectedDates={selectedDates}
+                            onDateSelect={setSelectedDates}
+                        />
+                        <p style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--text-dim)' }}>Selected: {selectedDates.length} dates</p>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
 
     return (
         <form onSubmit={handleSubmit} className="glass-panel" style={{ padding: '2.5rem', borderRadius: '24px', maxWidth: '800px', margin: '0 auto' }}>
@@ -324,298 +569,16 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
             </div>
 
             {/* AUDIO ADS SECTION */}
-            {bookingType === 'AUDIO' && (
-                <div style={sectionStyle}>
-                    <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', color: 'var(--primary)' }}>Audio Ads</h3>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                        <div>
-                            <label style={labelStyle}>Start Date</label>
-                            <input type="date" required style={inputStyle} value={startDate} onChange={e => setStartDate(e.target.value)} />
-                        </div>
-                        <div>
-                            <label style={labelStyle}>End Date</label>
-                            <input type="date" required style={inputStyle} value={endDate} onChange={e => setEndDate(e.target.value)} />
-                        </div>
-                    </div>
-
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={labelStyle}>Targeting Preference</label>
-                        <div style={checkboxGroupStyle}>
-                            {['Location Based', 'Radio Stations', 'Podcasts', 'Run of Network'].map(opt => (
-                                <label key={opt} style={{
-                                    ...checkboxLabelStyle,
-                                    background: audioTargeting.includes(opt) ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.05)',
-                                    borderColor: audioTargeting.includes(opt) ? 'var(--primary)' : 'transparent'
-                                }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={audioTargeting.includes(opt)}
-                                        onChange={() => toggleArraySelection(opt, audioTargeting, setAudioTargeting)}
-                                        style={{ accentColor: 'var(--primary)' }}
-                                    />
-                                    {opt}
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div>
-                        <label style={labelStyle}>Number of Impressions/Spots</label>
-                        <input
-                            type="number"
-                            required
-                            min="1000"
-                            step="1000"
-                            style={inputStyle}
-                            value={impressions || ''}
-                            onChange={e => setImpressions(parseInt(e.target.value))}
-                        />
-                    </div>
-                </div>
-            )}
+            {bookingType === 'AUDIO' && renderSection('AUDIO')}
 
             {/* DISPLAY ADS SECTION */}
-            {bookingType === 'DISPLAY' && (
-                <div style={sectionStyle}>
-                    <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', color: 'var(--primary)' }}>Display Ads</h3>
-
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={labelStyle}>Number of Impressions</label>
-                        <input
-                            type="number"
-                            required
-                            min="1000"
-                            step="1000"
-                            style={inputStyle}
-                            value={impressions || ''}
-                            onChange={e => setImpressions(parseInt(e.target.value))}
-                        />
-                    </div>
-
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={labelStyle}>Type of Display Ads</label>
-                        <select
-                            style={inputStyle}
-                            value={displayType}
-                            onChange={e => setDisplayType(e.target.value)}
-                        >
-                            <option value="MPU">MPU</option>
-                            <option value="LEADERBOARD">Leaderboard</option>
-                            <option value="WALLPAPER">Wallpaper / Takeover</option>
-                        </select>
-                    </div>
-
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={labelStyle}>Websites</label>
-                        <div style={checkboxGroupStyle}>
-                            {['WA', 'CTY', 'UNB', 'NEXGEN'].map(site => (
-                                <label key={site} style={{
-                                    ...checkboxLabelStyle,
-                                    background: displayWebsites.includes(site) ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.05)',
-                                    borderColor: displayWebsites.includes(site) ? 'var(--primary)' : 'transparent'
-                                }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={displayWebsites.includes(site)}
-                                        onChange={() => toggleArraySelection(site, displayWebsites, setDisplayWebsites)}
-                                        style={{ accentColor: 'var(--primary)' }}
-                                    />
-                                    {site}
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                        <div>
-                            <label style={labelStyle}>Start Date</label>
-                            <input type="date" required style={inputStyle} value={startDate} onChange={e => setStartDate(e.target.value)} />
-                        </div>
-                        <div>
-                            <label style={labelStyle}>End Date</label>
-                            <input type="date" required style={inputStyle} value={endDate} onChange={e => setEndDate(e.target.value)} />
-                        </div>
-                    </div>
-                </div>
-            )}
+            {bookingType === 'DISPLAY' && renderSection('DISPLAY')}
 
             {/* BESPOKE E-SENDS SECTION */}
-            {bookingType === 'BESPOKE_ESEND' && (
-                <div style={sectionStyle}>
-                    <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', color: 'var(--primary)' }}>Bespoke E-sends</h3>
-
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={labelStyle}>Booking Department *</label>
-                        <select
-                            style={inputStyle}
-                            value={department}
-                            onChange={e => setDepartment(e.target.value)}
-                        >
-                            <option value="SALES">Sales</option>
-                            <option value="MARKETING">Marketing</option>
-                            <option value="FUNDRAISING">Fundraising</option>
-                            <option value="INTERNAL">Internal / Premier</option>
-                        </select>
-                    </div>
-
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={labelStyle}>Which e-mail marketing list(s) would you like to send the e-send to: *</label>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                            {[
-                                'SALES A+B',
-                                'SALES A',
-                                'SALES B',
-                                'SALES CTY',
-                                'SALES NEXGEN',
-                                'SALES LEADERS',
-                                'FUNDRAISING',
-                                'MARKETING',
-                                'SALES WAlive',
-                                'SALES PG',
-                                'Other (describe)'
-                            ].map(list => (
-                                <label key={list} style={{
-                                    ...checkboxLabelStyle,
-                                    width: '100%',
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    justifyContent: 'flex-start',
-                                    alignItems: 'center',
-                                    textAlign: 'left',
-                                    whiteSpace: 'nowrap',
-                                    paddingLeft: '1rem',
-                                    background: emailLists.includes(list) ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.05)',
-                                    borderColor: emailLists.includes(list) ? 'var(--primary)' : 'transparent'
-                                }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={emailLists.includes(list)}
-                                        onChange={() => toggleArraySelection(list, emailLists, setEmailLists)}
-                                        style={{ accentColor: 'var(--primary)', width: 'auto' }}
-                                    />
-                                    {list}
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={labelStyle}>How many bespoke esends would you like to book for this campaign?</label>
-                        <input
-                            type="number"
-                            min="1"
-                            style={inputStyle}
-                            value={emailCount}
-                            onChange={e => setEmailCount(parseInt(e.target.value))}
-                        />
-                    </div>
-
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={labelStyle}>Select Dates</label>
-                        <BespokeCalendar
-                            selectedDates={selectedDates}
-                            onDateSelect={setSelectedDates}
-                            selectedLists={emailLists}
-                            department={department}
-                        />
-                        <p style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--text-dim)' }}>Selected: {selectedDates.length} dates</p>
-                    </div>
-
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={labelStyle}>Comments</label>
-                        <textarea
-                            style={{ ...inputStyle, minHeight: '80px' }}
-                            placeholder="Any specific requirements..."
-                            value={emailComments}
-                            onChange={e => setEmailComments(e.target.value)}
-                        />
-                    </div>
-
-                    <div>
-                        <label style={labelStyle}>Is there anything else we should know about this email?</label>
-                        <textarea
-                            style={{ ...inputStyle, minHeight: '80px' }}
-                            value={emailNote}
-                            onChange={e => setEmailNote(e.target.value)}
-                        />
-                    </div>
-                </div>
-            )}
+            {bookingType === 'BESPOKE_ESEND' && renderSection('BESPOKE_ESEND')}
 
             {/* ADS IN E-SENDS SECTION */}
-            {bookingType === 'ADS_IN_ESEND' && (
-                <div style={sectionStyle}>
-                    <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', color: 'var(--primary)' }}>Ads in E-sends</h3>
-
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={labelStyle}>Target Email Publication *</label>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.5rem' }}>
-                            {[
-                                { label: 'Daily Content', id: 'email-daily-content' },
-                                { label: 'Daily News', id: 'email-daily-news' },
-                                { label: 'Be Still & Know', id: 'email-bsak' },
-                                { label: 'CTY (Sat)', id: 'email-cty' },
-                                { label: 'WA (Sat)', id: 'email-wa' },
-                                { label: 'PG (Fri)', id: 'email-pg' },
-                                { label: 'Daily Content (Affiliate)', id: 'email-affiliate-content' },
-                                { label: 'Daily News (Affiliate)', id: 'email-affiliate-news' },
-                                { label: 'Other', id: '' }
-                            ].map(pub => (
-                                <label key={pub.label} style={{
-                                    ...checkboxLabelStyle,
-                                    background: adsEmailType === pub.label ? 'var(--primary-glow)' : 'rgba(255,255,255,0.05)',
-                                    borderColor: adsEmailType === pub.label ? 'var(--primary)' : 'transparent',
-                                    justifyContent: 'flex-start' // Ensure left alignment
-                                }}>
-                                    <input
-                                        type="radio"
-                                        name="adsEmailPub"
-                                        checked={adsEmailType === pub.label}
-                                        onChange={() => setAdsEmailType(pub.label)}
-                                        style={{ accentColor: 'var(--primary)', width: 'auto', marginRight: '0.5rem' }}
-                                    />
-                                    {pub.label}
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={labelStyle}>Quantity of Ads</label>
-                        <input
-                            type="number"
-                            min="1"
-                            style={inputStyle}
-                            value={emailCount}
-                            onChange={e => setEmailCount(parseInt(e.target.value))}
-                        />
-                    </div>
-
-                    <div>
-                        <label style={labelStyle}>Select Available Dates</label>
-                        <AvailabilityCalendar
-                            type="ADS_IN_ESEND"
-                            targetId={
-                                // Map label back to ID for availability check
-                                // Ideally state should store ID, but keeping label for legacy compatibility for now
-                                adsEmailType === 'Daily Content' ? 'email-daily-content' :
-                                    adsEmailType === 'Daily News' ? 'email-daily-news' :
-                                        adsEmailType === 'Be Still & Know' ? 'email-bsak' :
-                                            adsEmailType === 'CTY (Sat)' ? 'email-cty' :
-                                                adsEmailType === 'WA (Sat)' ? 'email-wa' :
-                                                    adsEmailType === 'PG (Fri)' ? 'email-pg' :
-                                                        adsEmailType === 'Daily Content (Affiliate)' ? 'email-affiliate-content' :
-                                                            adsEmailType === 'Daily News (Affiliate)' ? 'email-affiliate-news' :
-                                                                undefined
-                            }
-                            selectedDates={selectedDates}
-                            onDateSelect={setSelectedDates}
-                        />
-                        <p style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--text-dim)' }}>Selected: {selectedDates.length} dates</p>
-                    </div>
-                </div>
-            )}
+            {bookingType === 'ADS_IN_ESEND' && renderSection('ADS_IN_ESEND')}
 
             {/* SUBMIT */}
             <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
