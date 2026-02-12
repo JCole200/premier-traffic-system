@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BookingRequest, GeoRegion } from '../../types/inventory';
 import { useRouter } from 'next/navigation';
 import AvailabilityCalendar from './AvailabilityCalendar';
@@ -230,6 +230,33 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
         transition: 'all 0.2s'
     };
 
+    // Load form configuration
+    const [formConfig, setFormConfig] = useState<any>(null);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('bookingFormConfig');
+            if (saved) {
+                try {
+                    setFormConfig(JSON.parse(saved));
+                } catch (e) {
+                    console.error('Failed to parse form config', e);
+                }
+            }
+        }
+    }, []);
+
+    // Default booking types if no config
+    const defaultBookingTypes = [
+        { id: 'AUDIO', label: 'Audio Ad' },
+        { id: 'DISPLAY', label: 'Display Ads' },
+        { id: 'BESPOKE_ESEND', label: 'Bespoke E-sends' },
+        { id: 'ADS_IN_ESEND', label: 'Ads in E-sends' },
+    ];
+
+    const bookingTypesToRender = formConfig && formConfig.bookingTypes ? formConfig.bookingTypes : defaultBookingTypes;
+    const bookingQuestion = formConfig && formConfig.bookingTypeQuestion ? formConfig.bookingTypeQuestion : 'What would you like to book? *';
+
     return (
         <form onSubmit={handleSubmit} className="glass-panel" style={{ padding: '2.5rem', borderRadius: '24px', maxWidth: '800px', margin: '0 auto' }}>
             <h2 style={{ fontSize: '1.8rem', marginBottom: '2rem', color: 'var(--text-main)' }}>
@@ -274,14 +301,9 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
                 </div>
 
                 <div>
-                    <label style={labelStyle}>What would you like to book? *</label>
+                    <label style={labelStyle}>{bookingQuestion}</label>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                        {[
-                            { id: 'AUDIO', label: 'Audio Ad' },
-                            { id: 'DISPLAY', label: 'Display Ads' },
-                            { id: 'BESPOKE_ESEND', label: 'Bespoke E-sends' },
-                            { id: 'ADS_IN_ESEND', label: 'Ads in E-sends' },
-                        ].map(type => (
+                        {bookingTypesToRender.map((type: any) => (
                             <div
                                 key={type.id}
                                 onClick={() => setBookingType(type.id as BookingType)}
