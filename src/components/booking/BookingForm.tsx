@@ -399,7 +399,7 @@ export default function BookingForm() {
                     </div>
 
                     <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={labelStyle}>Quantity of E-sends</label>
+                        <label style={labelStyle}>How many bespoke esends would you like to book for this campaign?</label>
                         <input
                             type="number"
                             min="1"
@@ -430,7 +430,7 @@ export default function BookingForm() {
                     </div>
 
                     <div>
-                        <label style={labelStyle}>Is there anything else we should know?</label>
+                        <label style={labelStyle}>Is there anything else we should know about this email?</label>
                         <textarea
                             style={{ ...inputStyle, minHeight: '80px' }}
                             value={emailNote}
