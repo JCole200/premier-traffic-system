@@ -10,13 +10,25 @@ datasource db {
   provider = "sqlite"
   // Reverting to standard DATABASE_URL for maximum compatibility
   // If using Vercel Postgres, ensure the connection string is assigned to DATABASE_URL in the dashboard.
-  url       = env("DATABASE_URL") 
+  url       = env("DATABASE_URL")
+}
+
+enum EmailInventoryType {
+  NEWSLETTER
+  BESPOKE
+}
+
+enum InventoryCategory {
+  AUDIO
+  DISPLAY
+  EMAIL
 }
 
 model InventoryItem {
   id            String @id // e.g. 'audio-podcast-unbelievable'
   name          String
-  type          String // 'AUDIO', 'DISPLAY', 'EMAIL'
+  category      InventoryCategory
+  emailType     EmailInventoryType? // only for EMAIL category
   totalCapacity Int
   unit          String
   bookings      Booking[]
@@ -65,4 +77,12 @@ model AuditLog {
   newValue    String?  // JSON or string
   changedBy   String?  // Name or ID of user
   createdAt   DateTime @default(now())
+}
+model ESendArchive {
+  id        String   @id @default(uuid())
+  title     String
+  copy      String   // full e‑send copy
+  link      String   // URL to the live e‑send
+  type      EmailInventoryType
+  createdAt DateTime @default(now())
 }
