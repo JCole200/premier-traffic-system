@@ -25,7 +25,7 @@ export interface BookingRequest {
     bookingType?: string; // 'AUDIO', 'DISPLAY', 'BESPOKE_ESEND', 'ADS_IN_ESEND'
     department?: string; // 'SALES', 'MARKETING', 'FUNDRAISING', 'INTERNAL'
     category?: string; // 'PAID', 'GIFT', 'FILLER', 'INTERNAL'
-    additionalDetails?: any; // Flexible JSON object
+    additionalDetails?: Record<string, unknown>; // Flexible JSON object
 
     // Specific requests
     audioSpots?: number;

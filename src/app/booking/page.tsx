@@ -4,6 +4,8 @@ import BookingForm from '../../components/booking/BookingForm';
 import FormEditor from '../../components/admin/FormEditor';
 import { getBookings } from '../../lib/actions/booking';
 
+export const dynamic = 'force-dynamic';
+
 export default async function BookingPage() {
     const cookieStore = await cookies();
     const isAdmin = cookieStore.has('admin_session');

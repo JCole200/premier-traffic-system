@@ -11,10 +11,9 @@ export async function getInventoryItems() {
     if (count === 0) {
         // Auto-seed if empty
         console.log('Seeding initial inventory items...');
-        await prisma.inventoryItem.createMany({
-            data: INVENTORY_BASELINES,
-            skipDuplicates: true
-        });
+        for (const item of INVENTORY_BASELINES) {
+            await prisma.inventoryItem.create({ data: item });
+        }
     }
 
     return await prisma.inventoryItem.findMany();
@@ -85,7 +84,6 @@ export async function blockDates(
     const endDate = new Date(sortedDates[sortedDates.length - 1]);
 
     await prisma.booking.create({
-        // @ts-ignore
         data: {
             clientName: 'ADMIN_BLOCK', // Special indicator
             campaignName: reason || 'Blocked Dates',

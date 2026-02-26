@@ -18,11 +18,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         // Check localStorage or system preference
         const savedTheme = localStorage.getItem('theme') as Theme | null;
         if (savedTheme) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setTheme(savedTheme);
             document.documentElement.setAttribute('data-theme', savedTheme);
         } else {
             const systemPrefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
             if (systemPrefersLight) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setTheme('light');
                 document.documentElement.setAttribute('data-theme', 'light');
             } else {

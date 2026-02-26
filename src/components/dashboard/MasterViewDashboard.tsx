@@ -24,6 +24,15 @@ interface MasterViewDashboardProps {
     inventoryItems: any[];
 }
 
+interface CalendarEvent {
+    id: string;
+    title: string;
+    start: Date;
+    end: Date;
+    resource: any;
+    style: { backgroundColor: string };
+}
+
 export default function MasterViewDashboard({ initialBookings, inventoryItems }: MasterViewDashboardProps) {
     const [view, setView] = useState<View>(Views.MONTH);
     const [date, setDate] = useState(new Date());
@@ -53,7 +62,7 @@ export default function MasterViewDashboard({ initialBookings, inventoryItems }:
         totalCapacity = filteredItems.reduce((acc, i) => acc + i.totalCapacity, 0);
 
         filteredBookings.forEach(b => {
-            const bookedAmount = b.audioSpots || b.displayImpressions || (b.emailDates ? JSON.parse(b.emailDates).length : 0);
+            const bookedAmount = (b.audioSpots || 0) + (b.displayImpressions || 0) + (b.emailDates ? (Array.isArray(JSON.parse(b.emailDates)) ? JSON.parse(b.emailDates).length : 0) : 0);
             totalBooked += bookedAmount;
 
             // Simple delivery simulation
@@ -82,7 +91,7 @@ export default function MasterViewDashboard({ initialBookings, inventoryItems }:
     }, [initialBookings, inventoryItems, filterType]);
 
     // Calendar Events
-    const events = useMemo(() => {
+    const events = useMemo<CalendarEvent[]>(() => {
         let filtered = initialBookings;
 
         if (filterType !== 'ALL') {
@@ -124,9 +133,9 @@ export default function MasterViewDashboard({ initialBookings, inventoryItems }:
                 style: { backgroundColor: color }
             };
         });
-    }, [initialBookings, filterType, filterCategory]);
+    }, [initialBookings, filterType, filterCategory, searchQuery]);
 
-    const eventPropGetter = (event: any) => ({
+    const eventPropGetter = (event: CalendarEvent) => ({
         style: {
             backgroundColor: event.style.backgroundColor,
             borderRadius: '6px',
@@ -277,7 +286,6 @@ export default function MasterViewDashboard({ initialBookings, inventoryItems }:
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
                         {months.map(m => {
                             const monthBookings = events.filter(e => isSameMonth(e.start, m));
-                            const monthTotal = monthBookings.reduce((acc, e) => acc + (e.resource.audioSpots || e.resource.displayImpressions || 0), 0);
 
                             return (
                                 <div key={m.getTime()} className="glass-panel" style={{

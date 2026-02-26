@@ -3,7 +3,7 @@ import InventoryList from '@/components/admin/InventoryList';
 import Sidebar from '@/components/layout/Sidebar';
 import DateBlocker from '@/components/admin/DateBlocker';
 
-// ...
+export const dynamic = 'force-dynamic';
 
 export default async function AdminPage() {
     const items = await getInventoryItems();

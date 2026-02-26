@@ -3,8 +3,8 @@
 import prisma from '../prisma';
 import { BookingRequest } from '../../types/inventory';
 import { revalidatePath } from 'next/cache';
-
 import { sendBookingEmail } from '../email';
+import { validateBookingRules } from '../limits';
 
 // Fetch all bookings
 export async function getBookings() {
@@ -15,10 +15,7 @@ export async function getBookings() {
         }
     });
 
-    // Transform to our frontend type if needed, or stick to Prisma type
-    // Prisma Dates are Date objects, frontend used strings. 
-    // Let's serialize Dates to strings for Client Components.
-    return bookings.map((b: any) => ({
+    return bookings.map((b) => ({
         ...b,
         startDate: b.startDate.toISOString().split('T')[0], // YYYY-MM-DD
         endDate: b.endDate.toISOString().split('T')[0],
@@ -27,8 +24,6 @@ export async function getBookings() {
     }));
 }
 
-import { validateBookingRules } from '../limits';
-
 // Create a booking
 export async function createBooking(data: Omit<BookingRequest, 'id' | 'status'>) {
     // 1. Validate Rules
@@ -36,7 +31,7 @@ export async function createBooking(data: Omit<BookingRequest, 'id' | 'status'>)
 
     // Extract lists from additionalDetails if present
     const details = data.additionalDetails;
-    const emailLists = details?.emailLists || [];
+    const emailLists = (details?.emailLists as string[]) || [];
 
     const validation = await validateBookingRules(
         data.department || 'SALES',
@@ -50,7 +45,6 @@ export async function createBooking(data: Omit<BookingRequest, 'id' | 'status'>)
     }
 
     const newBooking = await prisma.booking.create({
-        // @ts-ignore
         data: {
             clientName: data.clientName,
             campaignName: data.campaignName, // We can use this for "Campaign Name" or reuse for Brand if needed
@@ -84,7 +78,7 @@ export async function createBooking(data: Omit<BookingRequest, 'id' | 'status'>)
     });
 
     // Send Email Notification (Fire and Forget)
-    const b = newBooking as any;
+    const b = newBooking as Record<string, any>;
     const emailData: BookingRequest = {
         id: b.id,
         clientName: b.clientName,
@@ -135,9 +129,9 @@ export async function updateBooking(id: string, data: Partial<BookingRequest>) {
     });
 
     // 2. Create Audit Logs for changed fields
-    const changes: any[] = [];
+    const changes: Record<string, unknown>[] = [];
     Object.keys(updateData).forEach(key => {
-        const oldVal = (current as any)[key];
+        const oldVal = (current as Record<string, unknown>)[key];
         const newVal = updateData[key];
 
         // Simple comparison (dates/json objects might be tricky but strings/numbers work well)
@@ -220,7 +214,8 @@ export async function checkAvailability(type: string, start: string, end: string
     });
 
     // 3. Calculate usage
-    const used = bookings.reduce((acc: number, curr: any) => {
+    const used = bookings.reduce((acc: number, curr) => {
+        const c = curr as Record<string, any>;
         if (targetId) {
             if (curr.audioTargetId === targetId) return acc + curr.audioSpots;
             return acc;
