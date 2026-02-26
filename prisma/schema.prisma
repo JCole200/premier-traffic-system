@@ -13,22 +13,13 @@ datasource db {
   url       = env("DATABASE_URL")
 }
 
-enum EmailInventoryType {
-  NEWSLETTER
-  BESPOKE
-}
-
-enum InventoryCategory {
-  AUDIO
-  DISPLAY
-  EMAIL
-}
+// Enums removed for SQLite compatibility; using string fields instead
 
 model InventoryItem {
   id            String @id // e.g. 'audio-podcast-unbelievable'
   name          String
-  category      InventoryCategory
-  emailType     EmailInventoryType? // only for EMAIL category
+  category      String
+  emailType     String? // only for EMAIL category
   totalCapacity Int
   unit          String
   bookings      Booking[]
@@ -81,8 +72,8 @@ model AuditLog {
 model ESendArchive {
   id        String   @id @default(uuid())
   title     String
-  copy      String   // full e‑send copy
-  link      String   // URL to the live e‑send
-  type      EmailInventoryType
+  copy      String   // full e-send copy
+  link      String   // URL to the live e-send
+  type      String
   createdAt DateTime @default(now())
 }
