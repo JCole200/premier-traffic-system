@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns';
 import { BookingRequest, GeoRegion } from '../../types/inventory';
 import { useRouter } from 'next/navigation';
 import AvailabilityCalendar from './AvailabilityCalendar';
@@ -39,6 +40,7 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
     const [clientName, setClientName] = useState('');
     const [contractNumber, setContractNumber] = useState('');
     const [bookerName, setBookerName] = useState('');
+    const [category, setCategory] = useState('PAID');
 
     // Calendar State (kept separate for complex logic)
     const [selectedDates, setSelectedDates] = useState<string[]>([]);
@@ -174,15 +176,22 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
             }
 
             // Map to BookingRequest
+            const startDateStr = selectedDates.length > 0 ? selectedDates[0] : new Date().toISOString().split('T')[0];
+            const dateObj = new Date(startDateStr);
+            const monthYear = format(dateObj, 'MMM yy').toUpperCase();
+
+            const generatedCampaignName = `${clientName.toUpperCase()} | ${bookingType} | ${monthYear}`;
+
             const bookingData: Omit<BookingRequest, 'id' | 'status'> = {
                 clientName,
-                campaignName: bookingType + ' Campaign',
-                startDate: startDate || new Date().toISOString(),
+                campaignName: generatedCampaignName,
+                startDate: startDateStr,
                 endDate: endDate || new Date().toISOString(),
                 contractNumber,
                 bookerName,
                 bookingType,
                 department,
+                category,
                 geoTarget: 'GLOBAL' as GeoRegion,
                 additionalDetails,
 
@@ -543,6 +552,20 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
                             onChange={e => setBookerName(e.target.value)}
                         />
                     </div>
+                </div>
+
+                <div>
+                    <label style={labelStyle}>Booking Category</label>
+                    <select
+                        style={inputStyle}
+                        value={category}
+                        onChange={e => setCategory(e.target.value)}
+                    >
+                        <option value="PAID">Paid Campaign</option>
+                        <option value="GIFT">Gifting / Pro Bono</option>
+                        <option value="FILLER">Filler / House Ad</option>
+                        <option value="INTERNAL">Internal Promotion</option>
+                    </select>
                 </div>
 
                 <div>

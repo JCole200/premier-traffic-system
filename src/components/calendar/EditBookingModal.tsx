@@ -11,6 +11,7 @@ interface Props {
 export default function EditBookingModal({ booking, onClose }: Props) {
     const [isSaving, setIsSaving] = useState(false);
     const [status, setStatus] = useState(booking.status || 'CONFIRMED');
+    const [category, setCategory] = useState(booking.category || 'PAID');
 
     // Minimal editing for now: Status and Deletion. 
     // Full editing would duplicate the BookingForm logic which is complex.
@@ -32,7 +33,10 @@ export default function EditBookingModal({ booking, onClose }: Props) {
     const handleUpdate = async () => {
         setIsSaving(true);
         try {
-            await updateBooking(booking.id, { status: status as any });
+            await updateBooking(booking.id, {
+                status: status as any,
+                category: category
+            });
             onClose();
         } catch (error) {
             console.error(error);
@@ -65,7 +69,7 @@ export default function EditBookingModal({ booking, onClose }: Props) {
                     <strong>Type:</strong> {booking.bookingType || 'N/A'}
                 </div>
 
-                <div style={{ marginBottom: '2rem' }}>
+                <div style={{ marginBottom: '1rem' }}>
                     <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Status</label>
                     <select
                         style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', background: 'rgba(0,0,0,0.3)', color: 'white', border: '1px solid var(--border-subtle)' }}
@@ -78,7 +82,21 @@ export default function EditBookingModal({ booking, onClose }: Props) {
                     </select>
                 </div>
 
-                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                <div style={{ marginBottom: '2rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Category</label>
+                    <select
+                        style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', background: 'rgba(0,0,0,0.3)', color: 'white', border: '1px solid var(--border-subtle)' }}
+                        value={category}
+                        onChange={e => setCategory(e.target.value)}
+                    >
+                        <option value="PAID">Paid</option>
+                        <option value="GIFT">Gifting</option>
+                        <option value="FILLER">Filler</option>
+                        <option value="INTERNAL">Internal</option>
+                    </select>
+                </div>
+
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '1.5rem', marginBottom: '1.5rem' }}>
                     <button
                         onClick={handleDelete}
                         disabled={isSaving}
@@ -103,7 +121,11 @@ export default function EditBookingModal({ booking, onClose }: Props) {
                         Save
                     </button>
                 </div>
+
+                <AuditTrail bookingId={booking.id} />
             </div>
         </div>
     );
 }
+
+import AuditTrail from '../campaigns/AuditTrail';

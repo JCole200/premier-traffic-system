@@ -5,9 +5,35 @@ import BookingDetailsModal from './BookingDetailsModal';
 
 export default function CampaignTable({ bookings }: { bookings: any[] }) {
     const [selectedBooking, setSelectedBooking] = useState<any>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const filteredBookings = bookings.filter(b =>
+        b.clientName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        b.campaignName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        b.contractNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        b.bookerName?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     return (
         <>
+            <div style={{ marginBottom: '1.5rem' }}>
+                <input
+                    type="text"
+                    placeholder="🔍 Search campaigns, clients, or contract numbers..."
+                    style={{
+                        width: '100%',
+                        maxWidth: '500px',
+                        padding: '0.8rem 1.2rem',
+                        borderRadius: '12px',
+                        background: 'var(--bg-card)',
+                        border: '1px solid var(--border-subtle)',
+                        fontSize: '0.9rem'
+                    }}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+            </div>
+
             <div className="glass-panel" style={{ borderRadius: '16px', overflow: 'hidden' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                     <thead style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
@@ -21,7 +47,7 @@ export default function CampaignTable({ bookings }: { bookings: any[] }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {bookings.map((booking: any) => (
+                        {filteredBookings.map((booking: any) => (
                             <tr
                                 key={booking.id}
                                 onClick={() => setSelectedBooking(booking)}

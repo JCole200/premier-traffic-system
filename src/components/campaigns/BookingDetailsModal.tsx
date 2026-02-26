@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { updateBooking, deleteBooking } from '../../lib/actions/booking';
 import { useRouter } from 'next/navigation';
+import AuditTrail from './AuditTrail';
 
 interface BookingDetailsModalProps {
     booking: any;
@@ -207,6 +208,10 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
                             </div>
                         </div>
                     )}
+                </div>
+
+                <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '1.5rem' }}>
+                    <AuditTrail bookingId={booking.id} />
                 </div>
             </div>
         </div>

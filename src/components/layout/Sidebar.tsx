@@ -9,6 +9,7 @@ export default function Sidebar() {
 
     const navItems = [
         { label: 'Dashboard', href: '/' },
+        { label: 'Master View', href: '/master-view' },
         { label: 'Booking', href: '/booking' },
         { label: 'Availability', href: '/availability' },
         { label: 'Inventory', href: '/inventory' },
@@ -38,7 +39,7 @@ export default function Sidebar() {
                     {navItems.map((item) => {
                         const isActive = item.href === '/'
                             ? pathname === '/'
-                            : pathname.startsWith(item.href);
+                            : pathname?.startsWith(item.href);
 
                         return (
                             <Link

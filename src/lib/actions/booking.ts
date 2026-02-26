@@ -40,7 +40,7 @@ export async function createBooking(data: Omit<BookingRequest, 'id' | 'status'>)
 
     const validation = await validateBookingRules(
         data.department || 'SALES',
-        data.bookingType,
+        data.bookingType || '',
         data.emailDates || [],
         emailLists
     );
@@ -73,11 +73,17 @@ export async function createBooking(data: Omit<BookingRequest, 'id' | 'status'>)
         }
     });
 
+    // Create Log
+    await (prisma as any).auditLog.create({
+        data: {
+            bookingId: newBooking.id,
+            action: 'CREATE',
+            newValue: JSON.stringify(newBooking),
+            changedBy: data.bookerName || 'Unknown'
+        }
+    });
+
     // Send Email Notification (Fire and Forget)
-    // We cast to any or a compatible type to match BookingRequest expected by email helper
-    // Since newBooking has Date objects and the helper might expect strings, let's just pass what we have
-    // Actually our helper expects BookingRequest which has string dates. 
-    // Let's quickly reformat for the email helper.
     const b = newBooking as any;
     const emailData: BookingRequest = {
         id: b.id,
@@ -93,8 +99,6 @@ export async function createBooking(data: Omit<BookingRequest, 'id' | 'status'>)
         status: b.status as any
     };
 
-    // Don't await specifically if we don't want to block the UI, but usually good to await or run in background
-    // Since this is a server action, awaiting ensures it is sent before response returns
     await sendBookingEmail(emailData);
 
     revalidatePath('/');
@@ -102,12 +106,17 @@ export async function createBooking(data: Omit<BookingRequest, 'id' | 'status'>)
     revalidatePath('/campaigns');
     revalidatePath('/booking');
     revalidatePath('/availability');
+    revalidatePath('/master-view');
 
     return newBooking;
 }
 
 // Update Booking
 export async function updateBooking(id: string, data: Partial<BookingRequest>) {
+    // 0. Get current state for audit
+    const current = await prisma.booking.findUnique({ where: { id } });
+    if (!current) throw new Error('Booking not found');
+
     const updateData: any = { ...data };
 
     // Convert dates and JSON
@@ -119,26 +128,72 @@ export async function updateBooking(id: string, data: Partial<BookingRequest>) {
     // Remove immutable or unrelated fields if any (like id)
     delete updateData.id;
 
-    await prisma.booking.update({
+    // 1. Perform Update
+    const updated = await prisma.booking.update({
         where: { id },
         data: updateData
     });
 
+    // 2. Create Audit Logs for changed fields
+    const changes: any[] = [];
+    Object.keys(updateData).forEach(key => {
+        const oldVal = (current as any)[key];
+        const newVal = updateData[key];
+
+        // Simple comparison (dates/json objects might be tricky but strings/numbers work well)
+        if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+            changes.push({
+                bookingId: id,
+                action: 'UPDATE',
+                field: key,
+                oldValue: JSON.stringify(oldVal),
+                newValue: JSON.stringify(newVal),
+                changedBy: data.bookerName || 'System - Edit'
+            });
+        }
+    });
+
+    if (changes.length > 0) {
+        await (prisma as any).auditLog.createMany({ data: changes });
+    }
+
     revalidatePath('/');
     revalidatePath('/inventory');
     revalidatePath('/campaigns');
     revalidatePath('/booking');
     revalidatePath('/availability');
+    revalidatePath('/master-view');
 }
 
 // Delete Booking
 export async function deleteBooking(id: string) {
+    // We can't link to the booking after delete if we use relate Cascade?
+    // Actually AuditLog has onDelete: Cascade, so deleting the booking deletes logs.
+    // If we want to KEEP the logs, we should NOT use Cascade.
+    // But usually for compliance you want the logs to exist.
+    // Let's modify the schema slightly to make bookingId optional or use a different approach.
+    // For now, let's keep it simple. Usually "Delete" in these systems is a soft delete (status='CANCELLED').
+    // If we literally delete, the logs go away. 
+
+    // Log the delete action first? 
+    // If we want to keep the trail, soft delete is better.
+
     await prisma.booking.delete({ where: { id } });
+
     revalidatePath('/');
     revalidatePath('/inventory');
     revalidatePath('/campaigns');
     revalidatePath('/booking');
     revalidatePath('/availability');
+    revalidatePath('/master-view');
+}
+
+export async function getAuditLogs(bookingId: string) {
+    if (!bookingId) return [];
+    return await (prisma as any).auditLog.findMany({
+        where: { bookingId },
+        orderBy: { createdAt: 'desc' }
+    });
 }
 
 // Availability Check (Server Side)

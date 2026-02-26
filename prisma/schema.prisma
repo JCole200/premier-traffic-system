@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   // Reverting to standard DATABASE_URL for maximum compatibility
   // If using Vercel Postgres, ensure the connection string is assigned to DATABASE_URL in the dashboard.
   url       = env("DATABASE_URL") 
@@ -36,6 +36,7 @@ model Booking {
   bookerName         String?
   bookingType        String?  // 'AUDIO', 'DISPLAY', 'BESPOKE_ESEND', 'ADS_IN_ESEND'
   department         String   @default("SALES") // SALES, MARKETING, FUNDRAISING, INTERNAL
+  category           String   @default("PAID")  // PAID, GIFT, FILLER, INTERNAL
   additionalDetails  String?  // JSON string for extra fields (targeting, websites, etc.)
 
   // Inventory Requests
@@ -51,4 +52,17 @@ model Booking {
   
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+  auditLogs          AuditLog[]
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  bookingId   String
+  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  action      String   // 'CREATE', 'UPDATE', 'DELETE'
+  field       String?  // Which field changed
+  oldValue    String?  // JSON or string
+  newValue    String?  // JSON or string
+  changedBy   String?  // Name or ID of user
+  createdAt   DateTime @default(now())
 }
