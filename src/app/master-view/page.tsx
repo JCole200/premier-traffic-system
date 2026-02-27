@@ -16,8 +16,12 @@ export default async function MasterViewPage() {
             <Sidebar />
             <section style={{ padding: '2rem', height: '100vh', overflow: 'auto' }}>
                 <header style={{ marginBottom: '2rem' }}>
-                    <h2 style={{ fontSize: '1.8rem', fontWeight: 600 }}>Master Dashboard & Calendar</h2>
-                    <p style={{ color: 'var(--text-muted)' }}>Centralized view of all inventory, bookings, and delivery status.</p>
+                    <h2 style={{ fontSize: '1.8rem', fontWeight: 600 }}>
+                        Master Dashboard &amp; Calendar
+                    </h2>
+                    <p style={{ color: 'var(--text-muted)' }}>
+                        Centralized view of all inventory, bookings, and delivery status.
+                    </p>
                 </header>
 
                 <MasterViewDashboard
