@@ -455,47 +455,47 @@ export default function FormEditor({ isAdmin }: { isAdmin: boolean }) {
                             Save Form Configuration
                         </button>
                     </div>
+
+                    {/* Booking Type Modals - Inside exit guard to prevent overlay leaks */}
+                    {(showAddBookingType || editingBookingType) && (
+                        <BookingTypeModal
+                            type={editingBookingType || undefined}
+                            onSave={(t) => {
+                                if (editingBookingType) {
+                                    updateBookingType(editingBookingType.id, t);
+                                    setEditingBookingType(null);
+                                } else {
+                                    addBookingType(t as BookingType);
+                                    setShowAddBookingType(false);
+                                }
+                            }}
+                            onCancel={() => {
+                                setEditingBookingType(null);
+                                setShowAddBookingType(false);
+                            }}
+                        />
+                    )}
+
+                    {/* Field Editor Modal */}
+                    {editingField && (
+                        <FieldEditorModal
+                            field={editingField}
+                            onSave={(updates) => {
+                                updateField(editingField.id, updates);
+                                setEditingField(null);
+                            }}
+                            onCancel={() => setEditingField(null)}
+                        />
+                    )}
+
+                    {/* Add Field Modal */}
+                    {showAddField && (
+                        <AddFieldModal
+                            onAdd={addField}
+                            onCancel={() => setShowAddField(false)}
+                        />
+                    )}
                 </div>
-            )}
-
-            {/* Booking Type Modals */}
-            {(showAddBookingType || editingBookingType) && (
-                <BookingTypeModal
-                    type={editingBookingType || undefined}
-                    onSave={(t) => {
-                        if (editingBookingType) {
-                            updateBookingType(editingBookingType.id, t);
-                            setEditingBookingType(null);
-                        } else {
-                            addBookingType(t as BookingType);
-                            setShowAddBookingType(false);
-                        }
-                    }}
-                    onCancel={() => {
-                        setEditingBookingType(null);
-                        setShowAddBookingType(false);
-                    }}
-                />
-            )}
-
-            {/* Field Editor Modal */}
-            {editingField && (
-                <FieldEditorModal
-                    field={editingField}
-                    onSave={(updates) => {
-                        updateField(editingField.id, updates);
-                        setEditingField(null);
-                    }}
-                    onCancel={() => setEditingField(null)}
-                />
-            )}
-
-            {/* Add Field Modal */}
-            {showAddField && (
-                <AddFieldModal
-                    onAdd={addField}
-                    onCancel={() => setShowAddField(false)}
-                />
             )}
         </div>
     );
