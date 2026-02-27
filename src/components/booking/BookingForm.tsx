@@ -10,13 +10,14 @@ import { createBooking } from '../../lib/actions/booking';
 
 type BookingType = 'AUDIO' | 'DISPLAY' | 'BESPOKE_ESEND' | 'ADS_IN_ESEND';
 
-interface ExtraDetails {
+interface ExtraDetails extends Record<string, unknown> {
     targeting?: string[]; // Audio targeting
     displayType?: string; // MPU, Leaderboard, etc.
     displayWebsites?: string[]; // WA, CTY...
     emailLists?: string[]; // SALES A, etc.
     emailNote?: string;
     adsEmailType?: string; // Voice of Hope, etc.
+    copyStatus?: string;
 }
 
 
@@ -141,9 +142,10 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent, statusOverride?: 'CONFIRMED' | 'RESERVED') => {
         e.preventDefault();
         setIsSubmitting(true);
+        const finalStatus = statusOverride || 'CONFIRMED';
 
         try {
             // Extract core values based on active section
@@ -175,6 +177,9 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
                 additionalDetails.adsEmailType = data.adsTargeting;
             }
 
+            // Copy Status
+            (additionalDetails as any).copyStatus = data.copyStatus || 'PENDING';
+
             // Map to BookingRequest
             const startDateStr = selectedDates.length > 0 ? selectedDates[0] : new Date().toISOString().split('T')[0];
             const dateObj = new Date(startDateStr);
@@ -182,7 +187,7 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
 
             const generatedCampaignName = `${clientName.toUpperCase()} | ${bookingType} | ${monthYear}`;
 
-            const bookingData: Omit<BookingRequest, 'id' | 'status'> = {
+            const bookingData: Omit<BookingRequest, 'id'> = {
                 clientName,
                 campaignName: generatedCampaignName,
                 startDate: startDateStr,
@@ -199,6 +204,7 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
                 audioSpots: bookingType === 'AUDIO' ? impressions : 0,
                 displayImpressions: bookingType === 'DISPLAY' ? impressions : 0,
                 emailDates: (bookingType === 'BESPOKE_ESEND' || bookingType === 'ADS_IN_ESEND') ? selectedDates : [],
+                status: finalStatus
             };
 
             if (editingBookingId) {
@@ -210,7 +216,7 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
                 router.refresh();
             } else {
                 await createBooking(bookingData);
-                alert(`Booking Confirmed for ${clientName}!`);
+                alert(`${finalStatus === 'RESERVED' ? 'Reservation Saved' : 'Booking Confirmed'} for ${clientName}!`);
                 router.push('/');
             }
         } catch (err) {
@@ -347,6 +353,16 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
                 options: ['Daily Content', 'Daily News', 'Be Still & Know', 'CTY (Sat)', 'WA (Sat)', 'PG (Fri)', 'Daily Content (Affiliate)', 'Daily News (Affiliate)', 'Other']
             },
             { id: 'adsQuantity', type: 'number', label: 'Quantity of Ads', required: true, section: 'ADS_IN_ESEND', placeholder: '1' },
+
+            // Copy Status (Generic)
+            {
+                id: 'copyStatus',
+                type: 'select',
+                label: 'Copy/Creative Status',
+                required: false,
+                section: 'general',
+                options: ['PENDING', 'RECEIVED', 'APPROVED']
+            }
         ]
     };
 
@@ -620,9 +636,24 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
                     Cancel
                 </button>
                 <button
+                    type="button"
+                    disabled={isSubmitting || !bookingType}
+                    onClick={(e) => handleSubmit(e as any, 'RESERVED')}
+                    style={{
+                        padding: '0.8rem 1.5rem',
+                        borderRadius: '8px',
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid var(--border-subtle)',
+                        color: 'var(--text-muted)',
+                        cursor: isSubmitting ? 'not-allowed' : 'pointer'
+                    }}
+                >
+                    {isSubmitting ? '...' : 'Save as Reservation'}
+                </button>
+                <button
                     type="submit"
                     disabled={isSubmitting || !bookingType}
-                    className="btn-primary" // Assuming global class for gradient button
+                    className="btn-primary"
                     style={{
                         padding: '0.8rem 2rem',
                         borderRadius: '8px',
@@ -631,7 +662,7 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
                         opacity: isSubmitting ? 0.7 : 1
                     }}
                 >
-                    {isSubmitting ? 'Booking...' : 'Confirm Booking'}
+                    {isSubmitting ? 'Booking...' : (editingBookingId ? 'Update Booking' : 'Confirm Booking')}
                 </button>
             </div>
         </form>
