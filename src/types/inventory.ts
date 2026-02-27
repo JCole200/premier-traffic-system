@@ -34,7 +34,9 @@ export interface BookingRequest {
     emailDates?: string[]; // Array of dates for emails
 
     geoTarget: GeoRegion;
-    status: 'DRAFT' | 'CONFIRMED';
+    status: 'DRAFT' | 'CONFIRMED' | 'RESERVED';
+    expiresAt?: string; // ISO Date
+    lastAlertSentAt?: string; // ISO Date
 }
 
 // Data structure for the Context

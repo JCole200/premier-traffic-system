@@ -25,7 +25,7 @@ export async function getBookings() {
 }
 
 // Create a booking
-export async function createBooking(data: Omit<BookingRequest, 'id' | 'status'>) {
+export async function createBooking(data: Omit<BookingRequest, 'id'>) {
     // 1. Validate Rules
     console.log('Validating rules for:', data.department, data.bookingType);
 
@@ -63,7 +63,8 @@ export async function createBooking(data: Omit<BookingRequest, 'id' | 'status'>)
             department: data.department || 'SALES',
             additionalDetails: data.additionalDetails ? JSON.stringify(data.additionalDetails) : null,
 
-            status: 'CONFIRMED'
+            status: data.status || 'CONFIRMED',
+            expiresAt: (data.status === 'RESERVED') ? new Date(Date.now() + 48 * 60 * 60 * 1000) : null // 48 hour expiry for reservations
         }
     });
 
@@ -206,7 +207,7 @@ export async function checkAvailability(type: string, start: string, end: string
     // 2. Get Bookings overlapping
     const bookings = await prisma.booking.findMany({
         where: {
-            status: 'CONFIRMED',
+            status: { in: ['CONFIRMED', 'RESERVED'] }, // Reservations hold inventory
             // Simple Overlap Logic: (StartA <= EndB) and (EndA >= StartB)
             startDate: { lte: new Date(end) },
             endDate: { gte: new Date(start) }
