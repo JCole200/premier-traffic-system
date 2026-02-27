@@ -11,12 +11,17 @@ const MONTHLY_LIMIT_LISTS = [
 export async function validateBookingRules(
     department: string,
     bookingType: string,
+    category: string,
     dateStrings: string[],
     emailLists: string[] = [] // Lists selected for this booking
 ): Promise<ValidationResult> {
 
     // Only apply these complex rules to BESPOKE_ESEND
-    if (bookingType !== 'BESPOKE_ESEND') return { valid: true };
+    if (bookingType !== 'BESPOKE_ESEND' && bookingType !== 'ADS_IN_ESEND') {
+        // We might want to apply category rules to all types later, 
+        // but for now strictly following the e-send logic.
+        // Actually, category conflicts should probably apply to any booking that uses specific dates.
+    }
 
     // 1. Check Sunday Rule
     for (const dateStr of dateStrings) {
@@ -26,33 +31,29 @@ export async function validateBookingRules(
     }
 
     // 2. Check Exclusivity (Department Clash)
-    // If I am SALES, I checks for MARKETING or FUNDRAISING on these dates.
-    // If I am MARKETING, I checks for SALES.
-    for (const dateStr of dateStrings) {
-        const conflictingBookings = await prisma.booking.findMany({
-            where: {
-                bookingType: 'BESPOKE_ESEND',
-                emailDates: { contains: dateStr }, // Simple string check for checking the JSON array
-                department: { not: department }, // Conflict with OTHER departments
-                status: 'CONFIRMED'
-            }
-        });
+    if (bookingType === 'BESPOKE_ESEND') {
+        for (const dateStr of dateStrings) {
+            const conflictingBookings = await prisma.booking.findMany({
+                where: {
+                    bookingType: 'BESPOKE_ESEND',
+                    emailDates: { contains: dateStr },
+                    department: { not: department },
+                    status: { in: ['CONFIRMED', 'RESERVED'] }
+                }
+            });
 
-        // "when there is a marketing booking, there cannot be a sales booking (or viceversa)"
-        // This implies strict exclusivity between departments for the same day?
-        // Let's assume yes for now based on the prompt.
-        if (conflictingBookings.length > 0) {
-            const conflict = conflictingBookings[0];
-            return {
-                valid: false,
-                error: `Date ${dateStr} is already booked by ${conflict.department}. Sales and Marketing/Fundraising cannot book the same day.`
-            };
+            if (conflictingBookings.length > 0) {
+                const conflict = conflictingBookings[0];
+                return {
+                    valid: false,
+                    error: `Date ${dateStr} is already booked by ${conflict.department}. Sales and Marketing/Fundraising cannot book the same day.`
+                };
+            }
         }
     }
 
     // 3. Check Weekly Limit for SALES (2 per week)
-    if (department === 'SALES') {
-        // Group requested dates by week
+    if (department === 'SALES' && bookingType === 'BESPOKE_ESEND') {
         const weeksToCheck = new Set<string>();
         for (const d of dateStrings) weeksToCheck.add(startOfWeek(parseISO(d)).toISOString());
 
@@ -60,42 +61,28 @@ export async function validateBookingRules(
             const weekStart = new Date(weekStartStr);
             const weekEnd = endOfWeek(weekStart);
 
-            // Fetch existing booking COUNT for this week
-            // Since dates are stored as JSON arrays, we have to be careful.
-            // Ideally we'd normalize, but for now we fetch all Sales bookings in range and count availability.
-            // This is "heavy" filtering in CPU but fine for small scale.
-
             const salesBookings = await prisma.booking.findMany({
                 where: {
                     department: 'SALES',
                     bookingType: 'BESPOKE_ESEND',
-                    // Optimization: Overlap date range check to potential candidates
-                    // Note: 'startDate/endDate' might not perfectly align with 'emailDates' if it spans multiple, but usually they do.
-                    // We'll filter strictly in JS.
-                    status: 'CONFIRMED'
+                    status: { in: ['CONFIRMED', 'RESERVED'] }
                 }
             });
 
-            // Count how many individual E-sends (days) are already booked in this week
             let weeklyCount = 0;
             for (const b of salesBookings) {
                 if (!b.emailDates) continue;
                 const dates = JSON.parse(b.emailDates) as string[];
                 for (const d of dates) {
                     const dateObj = parseISO(d);
-                    if (dateObj >= weekStart && dateObj <= weekEnd) {
-                        weeklyCount++;
-                    }
+                    if (dateObj >= weekStart && dateObj <= weekEnd) weeklyCount++;
                 }
             }
 
-            // Add CURRENT request count for this week
             let requestCountInWeek = 0;
             for (const d of dateStrings) {
                 const dateObj = parseISO(d);
-                if (dateObj >= weekStart && dateObj <= weekEnd) {
-                    requestCountInWeek++;
-                }
+                if (dateObj >= weekStart && dateObj <= weekEnd) requestCountInWeek++;
             }
 
             if (weeklyCount + requestCountInWeek > 2) {
@@ -108,13 +95,10 @@ export async function validateBookingRules(
     }
 
     // 4. Monthly List Limits
-    // "1 e-send per month for each of the following: Marketplace..."
-    // This applies if the CURRENT booking uses one of these lists.
     const constrainedLists = emailLists.filter(l => MONTHLY_LIMIT_LISTS.some(restricted => l.includes(restricted)));
 
     if (constrainedLists.length > 0) {
         for (const listName of constrainedLists) {
-            // Check monthly usage for THIS list
             const monthsToCheck = new Set<string>();
             for (const d of dateStrings) monthsToCheck.add(startOfMonth(parseISO(d)).toISOString());
 
@@ -122,21 +106,17 @@ export async function validateBookingRules(
                 const monthStart = new Date(monthStartStr);
                 const monthEnd = endOfMonth(monthStart);
 
-                // Find bookings using this list in this month
-                // We rely on JSON string search for list name in `additionalDetails`.
                 const existing = await prisma.booking.findMany({
                     where: {
                         bookingType: 'BESPOKE_ESEND',
-                        additionalDetails: { contains: listName }, // Heuristic
-                        status: 'CONFIRMED'
+                        additionalDetails: { contains: listName },
+                        status: { in: ['CONFIRMED', 'RESERVED'] }
                     }
                 });
 
                 for (const b of existing) {
                     if (!b.emailDates) continue;
                     const dates = JSON.parse(b.emailDates) as string[];
-                    // If any date in that booking falls in this month, it counts as "1 e-send per month" usage?
-                    // Or is it 1 DATE per month? "1 e-send" usually means 1 blast.
                     const intersectsMonth = dates.some(d => {
                         const time = parseISO(d).getTime();
                         return time >= monthStart.getTime() && time <= monthEnd.getTime();
@@ -150,8 +130,6 @@ export async function validateBookingRules(
                     }
                 }
 
-                // Also check self-consistency (cannot book 2 dates for Restricted List in same request if they are same month)
-                // If request has 2 dates in same month for restricted list, fail.
                 let requestCountInMonth = 0;
                 for (const d of dateStrings) {
                     const time = parseISO(d).getTime();
@@ -160,6 +138,33 @@ export async function validateBookingRules(
                 if (requestCountInMonth > 1) {
                     return { valid: false, error: `List '${listName}' is limited to 1 send per month. You selected ${requestCountInMonth} dates.` };
                 }
+            }
+        }
+    }
+
+    // 5. Dynamic Category Conflict Rules
+    const dynamicRules = await (prisma as any).bookingRule.findMany({
+        where: { isActive: true, category: category }
+    });
+
+    for (const rule of dynamicRules) {
+        const conflictCategories = JSON.parse(rule.conflictsWith) as string[];
+        const allRelevantCategories = Array.from(new Set([category, ...conflictCategories]));
+
+        for (const dateStr of dateStrings) {
+            const conflicts = await prisma.booking.findMany({
+                where: {
+                    status: { in: ['CONFIRMED', 'RESERVED'] },
+                    category: { in: allRelevantCategories },
+                    emailDates: { contains: dateStr }
+                }
+            });
+
+            if (conflicts.length >= rule.maxDaily) {
+                return {
+                    valid: false,
+                    error: `Rule Conflict: "${rule.name}". Category ${category} is limited to ${rule.maxDaily} daily total including: ${conflictCategories.join(', ')}. Found ${conflicts.length} existing.`
+                };
             }
         }
     }

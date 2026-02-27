@@ -72,6 +72,16 @@ model AuditLog {
   changedBy   String?  // Name or ID of user
   createdAt   DateTime @default(now())
 }
+model BookingRule {
+  id               String   @id @default(uuid())
+  name             String
+  category         String   // The category this rule applies to
+  conflictsWith    String   @default("[]") // JSON array of categories it cannot overlap with
+  maxDaily         Int      @default(1)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
 model ESendArchive {
   id        String   @id @default(uuid())
   title     String

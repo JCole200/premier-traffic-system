@@ -1,12 +1,15 @@
 import { getInventoryItems } from '@/lib/actions/admin';
+import { getBookingRules } from '@/lib/actions/rules';
 import InventoryList from '@/components/admin/InventoryList';
 import Sidebar from '@/components/layout/Sidebar';
 import DateBlocker from '@/components/admin/DateBlocker';
+import ConflictRuleManager from '@/components/admin/ConflictRuleManager';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminPage() {
     const items = await getInventoryItems();
+    const rules = await getBookingRules();
 
     return (
         <main className="grid-dashboard">
@@ -17,13 +20,18 @@ export default async function AdminPage() {
                     <p style={{ color: 'var(--text-muted)' }}>Manage inventory and block out dates.</p>
                 </header>
 
-                <div className="glass-panel" style={{ borderRadius: '16px', overflow: 'hidden', padding: '2rem', marginBottom: '2rem' }}>
-                    <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem' }}>Inventory Baselines</h3>
-                    <InventoryList initialItems={items} />
-                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
+                    <div className="glass-panel" style={{ borderRadius: '16px', overflow: 'hidden', padding: '2rem' }}>
+                        <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem' }}>Inventory Baselines</h3>
+                        <InventoryList initialItems={items as any} />
+                    </div>
 
-                <div className="glass-panel" style={{ borderRadius: '16px', overflow: 'hidden', padding: '2rem' }}>
-                    <DateBlocker />
+                    <div style={{ display: 'grid', gap: '2rem' }}>
+                        <ConflictRuleManager initialRules={rules} />
+                        <div className="glass-panel" style={{ borderRadius: '16px', overflow: 'hidden', padding: '2rem' }}>
+                            <DateBlocker />
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>

@@ -36,6 +36,7 @@ export async function createBooking(data: Omit<BookingRequest, 'id'>) {
     const validation = await validateBookingRules(
         data.department || 'SALES',
         data.bookingType || '',
+        data.category || 'PAID',
         data.emailDates || [],
         emailLists
     );
@@ -44,7 +45,7 @@ export async function createBooking(data: Omit<BookingRequest, 'id'>) {
         throw new Error(validation.error || 'Booking violated business rules');
     }
 
-    const newBooking = await prisma.booking.create({
+    const newBooking = await (prisma as any).booking.create({
         data: {
             clientName: data.clientName,
             campaignName: data.campaignName, // We can use this for "Campaign Name" or reuse for Brand if needed
@@ -200,7 +201,7 @@ export async function checkAvailability(type: string, start: string, end: string
         baseline = item ? item.totalCapacity : 0;
     } else {
         // Aggregate
-        const items = await prisma.inventoryItem.findMany({ where: { type } });
+        const items = await (prisma as any).inventoryItem.findMany({ where: { type } });
         baseline = items.reduce((acc: number, curr: { totalCapacity: number }) => acc + curr.totalCapacity, 0);
     }
 
