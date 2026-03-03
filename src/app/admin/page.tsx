@@ -1,5 +1,6 @@
 import { getInventoryItems } from '@/lib/actions/admin';
 import { getBookingRules } from '@/lib/actions/rules';
+import { checkAvailability } from '@/lib/actions/booking';
 import InventoryList from '@/components/admin/InventoryList';
 import Sidebar from '@/components/layout/Sidebar';
 import DateBlocker from '@/components/admin/DateBlocker';
@@ -10,6 +11,19 @@ export const dynamic = 'force-dynamic';
 export default async function AdminPage() {
     const items = await getInventoryItems();
     const rules = await getBookingRules();
+
+    // Calculate usage for the current month to show in the admin list
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+
+    const itemsWithUsage = await Promise.all(items.map(async (item: any) => {
+        const available = await checkAvailability(item.type, start, end, item.id);
+        return {
+            ...item,
+            available
+        };
+    }));
 
     return (
         <main className="grid-dashboard">
@@ -23,7 +37,7 @@ export default async function AdminPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
                     <div className="glass-panel" style={{ borderRadius: '16px', overflow: 'hidden', padding: '2rem' }}>
                         <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem' }}>Inventory Baselines</h3>
-                        <InventoryList initialItems={items as any} />
+                        <InventoryList initialItems={itemsWithUsage as any} />
                     </div>
 
                     <div style={{ display: 'grid', gap: '2rem' }}>

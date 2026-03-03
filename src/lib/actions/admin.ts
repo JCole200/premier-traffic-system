@@ -6,17 +6,22 @@ import { revalidatePath } from 'next/cache';
 import { INVENTORY_BASELINES } from '../constants';
 
 export async function getInventoryItems() {
-    const count = await prisma.inventoryItem.count();
-
-    if (count === 0) {
-        // Auto-seed if empty
-        console.log('Seeding initial inventory items...');
-        for (const item of INVENTORY_BASELINES) {
-            await prisma.inventoryItem.create({ data: item });
+    // Ensure all baseline items exist in the DB
+    for (const item of INVENTORY_BASELINES) {
+        try {
+            await (prisma as any).inventoryItem.upsert({
+                where: { id: item.id },
+                update: {}, // Only create if missing, don't revert user edits
+                create: item
+            });
+        } catch (e) {
+            console.error(`Error syncing inventory item ${item.id}:`, e);
         }
     }
 
-    return await prisma.inventoryItem.findMany();
+    return await prisma.inventoryItem.findMany({
+        orderBy: { name: 'asc' }
+    });
 }
 
 export async function updateInventoryCapacity(id: string, newCapacity: number) {

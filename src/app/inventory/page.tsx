@@ -6,9 +6,9 @@ import { InventoryItem } from '@prisma/client';
 export const dynamic = 'force-dynamic';
 
 export default async function InventoryPage() {
-    // Mock Date Range for "Month View"
-    const start = new Date().toISOString();
-    const end = new Date().toISOString();
+    const now = new Date();
+    const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const endOfCurrentMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
     const items = await getInventoryItems();
 
@@ -18,7 +18,7 @@ export default async function InventoryPage() {
             <section style={{ padding: '2rem' }}>
                 <header style={{ marginBottom: '3rem' }}>
                     <h2 style={{ fontSize: '1.8rem', fontWeight: 600 }}>Inventory Status</h2>
-                    <p style={{ color: 'var(--text-muted)' }}>Detailed breakdown of monthly capacity and utilization.</p>
+                    <p style={{ color: 'var(--text-muted)' }}>Detailed breakdown of monthly capacity and utilization for {now.toLocaleString('default', { month: 'long', year: 'numeric' })}.</p>
                 </header>
 
                 <div className="glass-panel" style={{ borderRadius: '16px', overflow: 'hidden' }}>
@@ -28,7 +28,7 @@ export default async function InventoryPage() {
                                 <th style={{ padding: '1rem' }}>Inventory Line</th>
                                 <th style={{ padding: '1rem' }}>Type</th>
                                 <th style={{ padding: '1rem' }}>Total Capacity</th>
-                                <th style={{ padding: '1rem' }}>Booked</th>
+                                <th style={{ padding: '1rem' }}>Booked (Monthly)</th>
                                 <th style={{ padding: '1rem' }}>Available</th>
                                 <th style={{ padding: '1rem' }}>Utilization</th>
                             </tr>
@@ -40,8 +40,8 @@ export default async function InventoryPage() {
                                 </tr>
                             )}
                             {await Promise.all(items.map(async (item: InventoryItem) => {
-                                // Calculate availability for this SPECIFIC item ID
-                                const itemAvailable = await checkAvailability(item.type, start, end, item.id);
+                                // Calculate availability for this SPECIFIC item ID over the current month
+                                const itemAvailable = await checkAvailability(item.type, startOfCurrentMonth, endOfCurrentMonth, item.id);
                                 const itemUsed = item.totalCapacity - itemAvailable;
                                 const percentUsed = item.totalCapacity > 0 ? (itemUsed / item.totalCapacity) : 0;
 

@@ -159,10 +159,11 @@ export default function InventoryList({ initialItems }: { initialItems: Inventor
 
             {/* LIST */}
             <div style={{ display: 'grid', gap: '0.5rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 120px', padding: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)', borderBottom: '1px solid var(--border-subtle)', alignItems: 'center' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 120px', padding: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)', borderBottom: '1px solid var(--border-subtle)', alignItems: 'center' }}>
                     <div>NAME / ID</div>
                     <div>TYPE</div>
-                    <div>CAPACITY</div>
+                    <div>FULL CAP</div>
+                    <div>USED</div>
                     <div>UNIT</div>
                     <div style={{ textAlign: 'center' }}>ACTIONS</div>
                 </div>
@@ -172,7 +173,7 @@ export default function InventoryList({ initialItems }: { initialItems: Inventor
                 {items.map(item => (
                     <div key={item.id} style={{
                         display: 'grid',
-                        gridTemplateColumns: '2fr 1.5fr 1fr 1fr 120px',
+                        gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 120px',
                         alignItems: 'center',
                         gap: '1rem',
                         padding: '1rem',
@@ -195,6 +196,7 @@ export default function InventoryList({ initialItems }: { initialItems: Inventor
                                     <option value="EMAIL">Email (Legacy)</option>
                                 </select>
                                 <input type="number" value={editForm.totalCapacity} onChange={e => setEditForm({ ...editForm, totalCapacity: parseInt(e.target.value) || 0 })} />
+                                <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>N/A in Edit</div>
                                 <input value={editForm.unit} onChange={e => setEditForm({ ...editForm, unit: e.target.value })} />
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     <button onClick={saveEdit} style={{ color: 'var(--success)', background: 'transparent', border: 'none' }}>
@@ -223,7 +225,10 @@ export default function InventoryList({ initialItems }: { initialItems: Inventor
                                         {item.type}
                                     </span>
                                 </div>
-                                <div style={{ fontSize: '0.9rem' }}>{item.totalCapacity}</div>
+                                <div style={{ fontSize: '0.9rem' }}>{item.totalCapacity.toLocaleString()}</div>
+                                <div style={{ fontSize: '0.9rem', color: (item as any).available < item.totalCapacity ? 'var(--warning)' : 'inherit' }}>
+                                    {Math.max(0, item.totalCapacity - ((item as any).available ?? item.totalCapacity)).toLocaleString()}
+                                </div>
                                 <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{item.unit}</div>
                                 <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                                     <button

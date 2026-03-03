@@ -64,7 +64,7 @@ export async function createBooking(data: Omit<BookingRequest, 'id'>) {
             clientName: data.clientName,
             campaignName: data.campaignName, // We can use this for "Campaign Name" or reuse for Brand if needed
             startDate: new Date(data.startDate),
-            endDate: new Date(data.endDate),
+            endDate: new Date(new Date(data.endDate).setHours(23, 59, 59, 999)),
             geoTarget: data.geoTarget,
             audioSpots: data.audioSpots || 0,
             audioTargetId: data.audioTargetId || null,
@@ -131,7 +131,7 @@ export async function updateBooking(id: string, data: Partial<BookingRequest>) {
 
     // Convert dates and JSON
     if (data.startDate) updateData.startDate = new Date(data.startDate);
-    if (data.endDate) updateData.endDate = new Date(data.endDate);
+    if (data.endDate) updateData.endDate = new Date(new Date(data.endDate).setHours(23, 59, 59, 999));
     if (data.emailDates) updateData.emailDates = JSON.stringify(data.emailDates);
     if (data.additionalDetails) updateData.additionalDetails = JSON.stringify(data.additionalDetails);
 

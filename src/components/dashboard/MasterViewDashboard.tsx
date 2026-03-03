@@ -128,7 +128,7 @@ export default function MasterViewDashboard({ initialBookings, inventoryItems }:
                 id: b.id,
                 title: `${b.clientName} - ${b.campaignName} (${b.category || 'PAID'})`,
                 start: new Date(b.startDate),
-                end: new Date(b.endDate),
+                end: new Date(new Date(b.endDate).setHours(23, 59, 59)), // Set to end of day so calendar displays it correctly
                 resource: b,
                 style: { backgroundColor: color }
             };
