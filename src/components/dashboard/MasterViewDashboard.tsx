@@ -62,7 +62,7 @@ export default function MasterViewDashboard({ initialBookings, inventoryItems }:
         totalCapacity = filteredItems.reduce((acc, i) => acc + i.totalCapacity, 0);
 
         filteredBookings.forEach(b => {
-            const bookedAmount = (b.audioSpots || 0) + (b.displayImpressions || 0) + (b.emailDates ? (Array.isArray(JSON.parse(b.emailDates)) ? JSON.parse(b.emailDates).length : 0) : 0);
+            const bookedAmount = (b.audioSpots || 0) + (b.displayImpressions || 0) + (b.emailDates ? (Array.isArray(b.emailDates) ? b.emailDates.length : 0) : 0);
             totalBooked += bookedAmount;
 
             // Simple delivery simulation
@@ -336,7 +336,7 @@ export default function MasterViewDashboard({ initialBookings, inventoryItems }:
                             {inventoryItems.filter(i => filterType === 'ALL' || i.type === filterType).map(item => {
                                 const dailyCap = Math.floor(item.totalCapacity / 30);
                                 const itemBookings = initialBookings.filter(b => b.audioTargetId === item.id || (item.type === 'DISPLAY' && b.bookingType === 'DISPLAY') || (item.type === 'EMAIL' && (b.bookingType === 'BESPOKE_ESEND' || b.bookingType === 'ADS_IN_ESEND')));
-                                const totalItemBooked = itemBookings.reduce((acc, b) => acc + (b.audioSpots || b.displayImpressions || (b.emailDates ? JSON.parse(b.emailDates).length : 0)), 0);
+                                const totalItemBooked = itemBookings.reduce((acc, b) => acc + (b.audioSpots || b.displayImpressions || (b.emailDates ? b.emailDates.length : 0)), 0);
                                 const avgBooked = Math.floor(totalItemBooked / 30);
                                 const usedPct = Math.min(100, (avgBooked / dailyCap) * 100);
 

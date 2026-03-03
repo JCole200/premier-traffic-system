@@ -13,7 +13,9 @@ export async function validateBookingRules(
     bookingType: string,
     category: string,
     dateStrings: string[],
-    emailLists: string[] = [] // Lists selected for this booking
+    emailLists: string[] = [], // Lists selected for this booking
+    rangeStart?: string,
+    rangeEnd?: string
 ): Promise<ValidationResult> {
 
     // Only apply these complex rules to BESPOKE_ESEND
@@ -147,24 +149,51 @@ export async function validateBookingRules(
         where: { isActive: true, category: category }
     });
 
-    for (const rule of dynamicRules) {
-        const conflictCategories = JSON.parse(rule.conflictsWith) as string[];
-        const allRelevantCategories = Array.from(new Set([category, ...conflictCategories]));
+    if (dynamicRules.length > 0) {
+        // Collect all dates to check. If it's a range, we check every day in between.
+        let allDatesToCheck = [...dateStrings];
+        if (rangeStart && rangeEnd) {
+            const start = parseISO(rangeStart);
+            const end = parseISO(rangeEnd);
+            let current = start;
+            while (current <= end) {
+                allDatesToCheck.push(format(current, 'yyyy-MM-dd'));
+                current = new Date(current.getTime() + 24 * 60 * 60 * 1000);
+            }
+        }
+        // Deduplicate
+        allDatesToCheck = Array.from(new Set(allDatesToCheck));
 
-        for (const dateStr of dateStrings) {
-            const conflicts = await prisma.booking.findMany({
-                where: {
-                    status: { in: ['CONFIRMED', 'RESERVED'] },
-                    category: { in: allRelevantCategories },
-                    emailDates: { contains: dateStr }
+        for (const rule of dynamicRules) {
+            const conflictCategories = JSON.parse(rule.conflictsWith) as string[];
+            const allRelevantCategories = Array.from(new Set([category, ...conflictCategories]));
+
+            for (const dateStr of allDatesToCheck) {
+                const dateObj = parseISO(dateStr);
+
+                // Find any booking of relevant category that covers this specific day
+                const conflicts = await prisma.booking.findMany({
+                    where: {
+                        status: { in: ['CONFIRMED', 'RESERVED'] },
+                        category: { in: allRelevantCategories },
+                        OR: [
+                            { emailDates: { contains: dateStr } }, // E-sends on this day
+                            {
+                                AND: [
+                                    { startDate: { lte: dateObj } },
+                                    { endDate: { gte: dateObj } }
+                                ]
+                            } // Range bookings covering this day
+                        ]
+                    }
+                });
+
+                if (conflicts.length >= rule.maxDaily) {
+                    return {
+                        valid: false,
+                        error: `Rule Conflict: "${rule.name}". Category ${category} is limited to ${rule.maxDaily} daily total including: ${conflictCategories.join(', ')}. Found ${conflicts.length} overlapping on ${dateStr}.`
+                    };
                 }
-            });
-
-            if (conflicts.length >= rule.maxDaily) {
-                return {
-                    valid: false,
-                    error: `Rule Conflict: "${rule.name}". Category ${category} is limited to ${rule.maxDaily} daily total including: ${conflictCategories.join(', ')}. Found ${conflicts.length} existing.`
-                };
             }
         }
     }

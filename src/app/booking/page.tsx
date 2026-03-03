@@ -6,7 +6,8 @@ import { getBookings } from '../../lib/actions/booking';
 
 export const dynamic = 'force-dynamic';
 
-export default async function BookingPage() {
+export default async function BookingPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
+    const params = await searchParams;
     const cookieStore = await cookies();
     const isAdmin = cookieStore.has('admin_session');
 
@@ -31,7 +32,7 @@ export default async function BookingPage() {
                 {/* Form Editor - Admin Only */}
                 <FormEditor isAdmin={isAdmin} />
 
-                <BookingForm isAdmin={isAdmin} existingBookings={existingBookings} />
+                <BookingForm isAdmin={isAdmin} existingBookings={existingBookings} searchParams={params} />
             </section>
         </main>
     );

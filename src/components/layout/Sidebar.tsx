@@ -9,6 +9,8 @@ export default function Sidebar() {
 
     const navItems = [
         { label: 'Dashboard', href: '/' },
+        { label: 'Audio Dashboard', href: '/audio-dashboard' },
+        { label: 'Display Dashboard', href: '/display-dashboard' },
         { label: 'Master View', href: '/master-view' },
         { label: 'Booking', href: '/booking' },
         { label: 'Availability', href: '/availability' },

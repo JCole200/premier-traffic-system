@@ -42,7 +42,7 @@ export default async function Home() {
           </Link>
         </header>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
           <InventoryCard
             title="Audio Inventory"
             metric={`${(audioAvail / 1000).toFixed(0)}k`}
@@ -64,6 +64,24 @@ export default async function Home() {
             color="var(--accent-pink)"
             percentage={emailUsedPct}
           />
+        </div>
+
+        <div className="glass-panel" style={{ padding: '2rem', borderRadius: '16px' }}>
+          <h2 style={{ fontSize: '1.4rem', marginBottom: '1.5rem', fontWeight: 600 }}>Guided Workflows</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <Link href="/audio-dashboard" style={{ flex: 1 }}>
+              <div className="nav-item" style={{ padding: '1.5rem', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-subtle)', cursor: 'pointer' }}>
+                <h3 style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>🔈 Audio Workflow</h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Check specific podcast and radio stream availability by date.</p>
+              </div>
+            </Link>
+            <Link href="/display-dashboard" style={{ flex: 1 }}>
+              <div className="nav-item" style={{ padding: '1.5rem', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-subtle)', cursor: 'pointer' }}>
+                <h3 style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>💻 Display Workflow</h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Manage impressions across the entire Premier web portfolio.</p>
+              </div>
+            </Link>
+          </div>
         </div>
 
         {/* Recent Activity / Graph placeholder could go here */}

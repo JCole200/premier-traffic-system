@@ -38,9 +38,30 @@ export const INVENTORY_BASELINES: InventoryItem[] = [
     },
     {
         id: 'audio-stream',
-        name: 'Radio Streams',
+        name: 'Radio Pre-roll',
         type: 'AUDIO',
         totalCapacity: 600000,
+        unit: 'streams'
+    },
+    {
+        id: 'audio-mucky-business',
+        name: 'A Mucky Business',
+        type: 'AUDIO',
+        totalCapacity: 50000,
+        unit: 'streams'
+    },
+    {
+        id: 'audio-woman-alive',
+        name: 'Woman Alive',
+        type: 'AUDIO',
+        totalCapacity: 50000,
+        unit: 'streams'
+    },
+    {
+        id: 'audio-the-profile',
+        name: 'The Profile',
+        type: 'AUDIO',
+        totalCapacity: 50000,
         unit: 'streams'
     },
     {
@@ -90,6 +111,20 @@ export const INVENTORY_BASELINES: InventoryItem[] = [
         name: 'PG (Ads)',
         type: 'ADS_IN_ESEND',
         totalCapacity: 1, // Weekly (Fri)
+        unit: 'slots'
+    },
+    {
+        id: 'email-mucky-business',
+        name: 'A Mucky Business (Ads)',
+        type: 'ADS_IN_ESEND',
+        totalCapacity: 1,
+        unit: 'slots'
+    },
+    {
+        id: 'email-the-profile',
+        name: 'The Profile (Ads)',
+        type: 'ADS_IN_ESEND',
+        totalCapacity: 1,
         unit: 'slots'
     },
     {

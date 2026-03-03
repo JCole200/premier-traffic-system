@@ -63,6 +63,9 @@ export default function DateBlocker() {
                                 <option>CTY (Sat)</option>
                                 <option>WA (Sat)</option>
                                 <option>PG (Fri)</option>
+                                <option>Woman Alive</option>
+                                <option>A Mucky Business</option>
+                                <option>The Profile</option>
                                 <option>Daily Content (Affiliate)</option>
                                 <option>Daily News (Affiliate)</option>
                             </select>
@@ -84,7 +87,10 @@ export default function DateBlocker() {
                                                     adsEmailType === 'PG (Fri)' ? 'email-pg' :
                                                         adsEmailType === 'Daily Content (Affiliate)' ? 'email-affiliate-content' :
                                                             adsEmailType === 'Daily News (Affiliate)' ? 'email-affiliate-news' :
-                                                                undefined
+                                                                adsEmailType === 'Woman Alive' ? 'email-wa' :
+                                                                    adsEmailType === 'A Mucky Business' ? 'email-mucky-business' :
+                                                                        adsEmailType === 'The Profile' ? 'email-the-profile' :
+                                                                            undefined
                             ) : undefined
                         }
                         selectedDates={selectedDates}

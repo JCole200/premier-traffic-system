@@ -24,9 +24,10 @@ interface ExtraDetails extends Record<string, unknown> {
 interface BookingFormProps {
     isAdmin?: boolean;
     existingBookings?: any[];
+    searchParams?: { [key: string]: string | undefined };
 }
 
-export default function BookingForm({ isAdmin = false, existingBookings = [] }: BookingFormProps) {
+export default function BookingForm({ isAdmin = false, existingBookings = [], searchParams = {} }: BookingFormProps) {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editingBookingId, setEditingBookingId] = useState<string | null>(null);
@@ -62,6 +63,29 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
             }
         }
     }, []);
+
+    const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchItems = async () => {
+            const { getInventoryItems } = await import('../../lib/actions/admin');
+            const items = await getInventoryItems();
+            setInventoryItems(items);
+        };
+        fetchItems();
+    }, []);
+
+    useEffect(() => {
+        if (searchParams.type) setBookingType(searchParams.type as any);
+        if (searchParams.start) {
+            const start = searchParams.start;
+            if (searchParams.type === 'AUDIO') {
+                setFormData(prev => ({ ...prev, audioStartDate: start, audioTargetId: searchParams.target }));
+            } else if (searchParams.type === 'DISPLAY') {
+                setFormData(prev => ({ ...prev, displayStartDate: start }));
+            }
+        }
+    }, [searchParams]);
 
     // Load booking data for editing
     const loadBookingForEdit = (booking: any) => {
@@ -200,7 +224,7 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
                 geoTarget: 'GLOBAL' as GeoRegion,
                 additionalDetails,
 
-                // Map specific metrics
+                audioTargetId: bookingType === 'AUDIO' ? data.audioTargetId : null,
                 audioSpots: bookingType === 'AUDIO' ? impressions : 0,
                 displayImpressions: bookingType === 'DISPLAY' ? impressions : 0,
                 emailDates: (bookingType === 'BESPOKE_ESEND' || bookingType === 'ADS_IN_ESEND') ? selectedDates : [],
@@ -294,6 +318,14 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
             { id: 'audioStartDate', type: 'date', label: 'Start Date', required: true, section: 'AUDIO' },
             { id: 'audioEndDate', type: 'date', label: 'End Date', required: true, section: 'AUDIO' },
             {
+                id: 'audioTargetId',
+                type: 'select',
+                label: 'Audio Channel',
+                required: true,
+                section: 'AUDIO',
+                options: inventoryItems.filter(i => i.type === 'AUDIO').map(i => i.id)
+            },
+            {
                 id: 'audioTargeting',
                 type: 'checkbox',
                 label: 'Targeting Preference',
@@ -339,7 +371,7 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
                 label: 'Which e-mail marketing list(s) would you like to send the e-send to?',
                 required: true,
                 section: 'BESPOKE_ESEND',
-                options: ['SALES A+B', 'SALES A', 'SALES B', 'SALES CTY', 'SALES NEXGEN', 'SALES LEADERS', 'FUNDRAISING', 'MARKETING', 'SALES WAlive', 'SALES PG', 'Other (describe)']
+                options: ['SALES A+B', 'SALES A', 'SALES B', 'SALES CTY', 'SALES NEXGEN', 'SALES LEADERS', 'FUNDRAISING', 'MARKETING', 'SALES WAlive', 'SALES PG', 'ALL', 'Other (describe)']
             },
             { id: 'bespokeQuantity', type: 'number', label: 'How many bespoke esends would you like to book for this campaign?', required: true, section: 'BESPOKE_ESEND', placeholder: '1' },
 
@@ -350,7 +382,7 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
                 label: 'Target Email Publication',
                 required: true,
                 section: 'ADS_IN_ESEND',
-                options: ['Daily Content', 'Daily News', 'Be Still & Know', 'CTY (Sat)', 'WA (Sat)', 'PG (Fri)', 'Daily Content (Affiliate)', 'Daily News (Affiliate)', 'Other']
+                options: ['Daily Content', 'Daily News', 'Be Still & Know', 'CTY (Sat)', 'WA (Sat)', 'PG (Fri)', 'Woman Alive', 'A Mucky Business', 'The Profile', 'Daily Content (Affiliate)', 'Daily News (Affiliate)', 'Other']
             },
             { id: 'adsQuantity', type: 'number', label: 'Quantity of Ads', required: true, section: 'ADS_IN_ESEND', placeholder: '1' },
 
@@ -514,7 +546,10 @@ export default function BookingForm({ isAdmin = false, existingBookings = [] }: 
                                                     formData['adsTargeting'] === 'PG (Fri)' ? 'email-pg' :
                                                         formData['adsTargeting'] === 'Daily Content (Affiliate)' ? 'email-affiliate-content' :
                                                             formData['adsTargeting'] === 'Daily News (Affiliate)' ? 'email-affiliate-news' :
-                                                                undefined
+                                                                formData['adsTargeting'] === 'Woman Alive' ? 'email-wa' :
+                                                                    formData['adsTargeting'] === 'A Mucky Business' ? 'email-mucky-business' :
+                                                                        formData['adsTargeting'] === 'The Profile' ? 'email-the-profile' :
+                                                                            undefined
                             }
                             selectedDates={selectedDates}
                             onDateSelect={setSelectedDates}
