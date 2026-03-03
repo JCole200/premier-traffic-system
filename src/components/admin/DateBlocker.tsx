@@ -32,17 +32,28 @@ export default function DateBlocker() {
     };
 
     return (
-        <div style={{ marginTop: '2rem' }}>
-            <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem' }}>Block Out Dates</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div>
+                <h4 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 600 }}>Block Out Calendars</h4>
+                <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: 'var(--text-dim)' }}>Prevent any bookings on specific dates across selected channels.</p>
+            </div>
 
-            <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1.5rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '2rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
                     <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Calendar Type</label>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-muted)' }}>1. Select Calendar</label>
                         <select
                             value={type}
                             onChange={e => setType(e.target.value)}
-                            style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', background: 'rgba(0,0,0,0.2)', color: 'var(--foreground)', border: '1px solid var(--border-subtle)' }}
+                            style={{
+                                width: '100%',
+                                padding: '0.8rem',
+                                borderRadius: '12px',
+                                background: 'rgba(0,0,0,0.3)',
+                                color: 'var(--foreground)',
+                                border: '1px solid var(--border-subtle)',
+                                fontSize: '0.95rem'
+                            }}
                         >
                             <option value="BESPOKE_ESEND">Bespoke E-sends</option>
                             <option value="ADS_IN_ESEND">Ads in E-sends</option>
@@ -51,11 +62,19 @@ export default function DateBlocker() {
 
                     {type === 'ADS_IN_ESEND' && (
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Target Publication</label>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-muted)' }}>2. Target Publication</label>
                             <select
                                 value={adsEmailType}
                                 onChange={e => setAdsEmailType(e.target.value)}
-                                style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', background: 'rgba(0,0,0,0.2)', color: 'var(--foreground)', border: '1px solid var(--border-subtle)' }}
+                                style={{
+                                    width: '100%',
+                                    padding: '0.8rem',
+                                    borderRadius: '12px',
+                                    background: 'rgba(0,0,0,0.3)',
+                                    color: 'var(--foreground)',
+                                    border: '1px solid var(--border-subtle)',
+                                    fontSize: '0.95rem'
+                                }}
                             >
                                 <option>Daily Content</option>
                                 <option>Daily News</option>
@@ -74,52 +93,78 @@ export default function DateBlocker() {
                 </div>
 
                 <div>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Select Dates to Block</label>
-                    <AvailabilityCalendar
-                        type={type}
-                        targetId={
-                            type === 'ADS_IN_ESEND' ? (
-                                adsEmailType === 'Daily Content' ? 'email-daily-content' :
-                                    adsEmailType === 'Daily News' ? 'email-daily-news' :
-                                        adsEmailType === 'Be Still & Know' ? 'email-bsak' :
-                                            adsEmailType === 'CTY (Sat)' ? 'email-cty' :
-                                                adsEmailType === 'WA (Sat)' ? 'email-wa' :
-                                                    adsEmailType === 'PG (Fri)' ? 'email-pg' :
-                                                        adsEmailType === 'Daily Content (Affiliate)' ? 'email-affiliate-content' :
-                                                            adsEmailType === 'Daily News (Affiliate)' ? 'email-affiliate-news' :
-                                                                adsEmailType === 'Woman Alive' ? 'email-wa' :
-                                                                    adsEmailType === 'A Mucky Business' ? 'email-mucky-business' :
-                                                                        adsEmailType === 'The Profile' ? 'email-the-profile' :
-                                                                            undefined
-                            ) : undefined
-                        }
-                        selectedDates={selectedDates}
-                        onDateSelect={setSelectedDates}
-                        allowFullSelection={true}
-                    />
-                    <p style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--text-dim)' }}>{selectedDates.length} dates selected</p>
+                    <label style={{ display: 'block', marginBottom: '1rem', fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-muted)' }}>3. Choose Dates on Calendar</label>
+                    <div style={{
+                        background: 'rgba(0,0,0,0.2)',
+                        padding: '1.5rem',
+                        borderRadius: '16px',
+                        border: '1px solid var(--border-subtle)'
+                    }}>
+                        <AvailabilityCalendar
+                            type={type}
+                            targetId={
+                                type === 'ADS_IN_ESEND' ? (
+                                    adsEmailType === 'Daily Content' ? 'email-daily-content' :
+                                        adsEmailType === 'Daily News' ? 'email-daily-news' :
+                                            adsEmailType === 'Be Still & Know' ? 'email-bsak' :
+                                                adsEmailType === 'CTY (Sat)' ? 'email-cty' :
+                                                    adsEmailType === 'WA (Sat)' ? 'email-wa' :
+                                                        adsEmailType === 'PG (Fri)' ? 'email-pg' :
+                                                            adsEmailType === 'Daily Content (Affiliate)' ? 'email-affiliate-content' :
+                                                                adsEmailType === 'Daily News (Affiliate)' ? 'email-affiliate-news' :
+                                                                    adsEmailType === 'Woman Alive' ? 'email-wa' :
+                                                                        adsEmailType === 'A Mucky Business' ? 'email-mucky-business' :
+                                                                            adsEmailType === 'The Profile' ? 'email-the-profile' :
+                                                                                undefined
+                                ) : undefined
+                            }
+                            selectedDates={selectedDates}
+                            onDateSelect={setSelectedDates}
+                            allowFullSelection={true}
+                        />
+                    </div>
+                    <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: selectedDates.length > 0 ? 'var(--primary)' : 'var(--text-dim)' }}></div>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', margin: 0 }}>{selectedDates.length} dates selected for blocking</p>
+                    </div>
                 </div>
 
                 <div>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Reason / Note</label>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-muted)' }}>4. Reason for Blocking</label>
                     <input
                         type="text"
                         placeholder="e.g. Easter Holiday, System Maintenance..."
                         value={reason}
                         onChange={e => setReason(e.target.value)}
                         required
-                        style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', background: 'rgba(0,0,0,0.2)', color: 'var(--foreground)', border: '1px solid var(--border-subtle)' }}
+                        style={{
+                            width: '100%',
+                            padding: '1rem',
+                            borderRadius: '12px',
+                            background: 'rgba(0,0,0,0.3)',
+                            color: 'var(--foreground)',
+                            border: '1px solid var(--border-subtle)',
+                            fontSize: '0.95rem'
+                        }}
                     />
                 </div>
 
-                <div style={{ display: 'flex', justifySelf: 'end' }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                     <button
                         type="submit"
                         disabled={isSubmitting || selectedDates.length === 0}
                         className="btn-primary"
-                        style={{ background: 'var(--danger)', opacity: isSubmitting ? 0.7 : 1 }}
+                        style={{
+                            background: 'var(--danger)',
+                            padding: '1rem 2rem',
+                            borderRadius: '12px',
+                            fontWeight: 600,
+                            opacity: isSubmitting || selectedDates.length === 0 ? 0.6 : 1,
+                            transition: 'all 0.2s',
+                            boxShadow: selectedDates.length > 0 ? '0 4px 15px rgba(239, 68, 68, 0.3)' : 'none'
+                        }}
                     >
-                        {isSubmitting ? 'Blocking...' : 'Block Dates'}
+                        {isSubmitting ? 'Processing Block...' : 'Block Selected Dates'}
                     </button>
                 </div>
             </form>

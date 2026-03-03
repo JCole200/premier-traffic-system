@@ -34,15 +34,17 @@ export default async function AdminPage() {
                     <p style={{ color: 'var(--text-muted)' }}>Manage inventory and block out dates.</p>
                 </header>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
-                    <div className="glass-panel" style={{ borderRadius: '16px', overflow: 'hidden', padding: '2rem' }}>
-                        <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem' }}>Inventory Baselines</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                    {/* Full Width Inventory Section */}
+                    <div className="glass-panel" style={{ borderRadius: '24px', padding: '2rem' }}>
+                        <h3 style={{ marginBottom: '2rem', fontSize: '1.4rem', fontWeight: 600, color: 'var(--primary)' }}>Inventory Configuration</h3>
                         <InventoryList initialItems={itemsWithUsage as any} />
                     </div>
 
-                    <div style={{ display: 'grid', gap: '2rem' }}>
+                    {/* Collateral Tools Sections */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem', marginBottom: '4rem' }}>
                         <ConflictRuleManager initialRules={rules} />
-                        <div className="glass-panel" style={{ borderRadius: '16px', overflow: 'hidden', padding: '2rem' }}>
+                        <div className="glass-panel" style={{ borderRadius: '24px', padding: '2rem' }}>
                             <DateBlocker />
                         </div>
                     </div>
