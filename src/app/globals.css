@@ -293,3 +293,107 @@ input[type=range]:focus::-webkit-slider-runnable-track {
 .animate-pulse-glow {
   animation: pulse 2s infinite;
 }
+
+/* React Big Calendar Overrides - Elegant & Premium Theme */
+.rbc-calendar {
+  font-family: var(--font-sans);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--bg-panel);
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.rbc-header {
+  padding: 1rem 0;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle) !important;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+  background: var(--bg-card);
+}
+
+.rbc-month-view, .rbc-time-view, .rbc-agenda-view {
+  border: none !important;
+}
+
+.rbc-day-bg + .rbc-day-bg {
+  border-left: 1px solid var(--border-subtle) !important;
+}
+
+.rbc-month-row {
+  border-top: 1px solid var(--border-subtle) !important;
+  min-height: 140px; 
+  flex-basis: auto !important;
+  flex-grow: 1 !important;
+}
+
+.rbc-today {
+  background-color: var(--glass-bg) !important;
+}
+
+.rbc-date-cell {
+  padding: 0.75rem 0.5rem;
+  font-weight: 600;
+  color: var(--text-main);
+  text-align: right;
+  font-size: 0.95rem;
+}
+
+.rbc-off-range-bg {
+  background-color: rgba(0, 0, 0, 0.15); 
+}
+
+[data-theme='light'] .rbc-off-range-bg {
+  background-color: rgba(0, 0, 0, 0.03); 
+}
+
+.rbc-event {
+  border-radius: 6px !important;
+  padding: 4px 8px !important;
+  font-size: 0.8rem !important;
+  white-space: normal !important; 
+  display: flex !important;
+  align-items: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+  margin-bottom: 3px !important;
+}
+
+.rbc-event-content {
+  overflow: visible !important;
+  word-wrap: break-word;
+}
+
+.rbc-toolbar {
+  margin-bottom: 1.5rem !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rbc-toolbar-label {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--text-main);
+}
+
+.rbc-btn-group button {
+  border: 1px solid var(--border-subtle) !important;
+  color: var(--text-main) !important;
+  background: var(--bg-input) !important;
+  padding: 0.5rem 1rem !important;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.rbc-btn-group button.rbc-active {
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: white !important;
+}
+
+.rbc-btn-group button:hover {
+  background: var(--bg-nav-hover) !important;
+}
