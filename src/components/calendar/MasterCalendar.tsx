@@ -112,7 +112,7 @@ export default function MasterCalendar({ bookings, inventoryItems }: Props) {
     };
 
     return (
-        <div style={{ minHeight: '1000px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             {/* Tabs */}
             <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', padding: '0 1rem' }}>
                 <button
@@ -185,13 +185,13 @@ export default function MasterCalendar({ bookings, inventoryItems }: Props) {
             </div>
 
             {/* Calendar */}
-            <div className="glass-panel" style={{ flex: 1, padding: '1rem', overflow: 'visible' }}>
+            <div className="glass-panel" style={{ height: '800px', padding: '1rem' }}>
                 <Calendar
                     localizer={localizer}
                     events={events}
                     startAccessor="start"
                     endAccessor="end"
-                    style={{ minHeight: '800px' }}
+                    style={{ height: '100%' }}
                     view={view}
                     onView={setView}
                     date={date}

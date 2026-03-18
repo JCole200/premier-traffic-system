@@ -325,9 +325,7 @@ input[type=range]:focus::-webkit-slider-runnable-track {
 
 .rbc-month-row {
   border-top: 1px solid var(--border-subtle) !important;
-  min-height: 140px; 
-  flex-basis: auto !important;
-  flex-grow: 1 !important;
+  flex: 1 0 0% !important; /* Re-establish flex-grow for month rows */
 }
 
 .rbc-today {
@@ -352,18 +350,18 @@ input[type=range]:focus::-webkit-slider-runnable-track {
 
 .rbc-event {
   border-radius: 6px !important;
-  padding: 4px 8px !important;
-  font-size: 0.8rem !important;
-  white-space: normal !important; 
-  display: flex !important;
-  align-items: center;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
-  margin-bottom: 3px !important;
+  padding: 3px 6px !important;
+  font-size: 0.75rem !important;
+  line-height: 1.2 !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+  border: none !important;
+  margin-bottom: 2px !important;
 }
 
 .rbc-event-content {
-  overflow: visible !important;
-  word-wrap: break-word;
+  overflow: hidden !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .rbc-toolbar {
