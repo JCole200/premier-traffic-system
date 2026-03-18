@@ -10,7 +10,7 @@ export default async function AvailabilityPage() {
     return (
         <main className="grid-dashboard">
             <Sidebar />
-            <section style={{ padding: '2rem', height: '100vh', overflow: 'hidden' }}>
+            <section style={{ padding: '2rem', height: '100vh', overflow: 'auto' }}>
                 <div style={{ marginBottom: '1rem' }}>
                     <h2 style={{ fontSize: '1.8rem', fontWeight: 600 }}>Master Availability</h2>
                     <p style={{ color: 'var(--text-muted)' }}>View and manage bookings across all channels.</p>
