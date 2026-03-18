@@ -210,6 +210,11 @@ export default function BookingForm({ isAdmin = false, existingBookings = [], se
             const monthYear = format(dateObj, 'MMM yy').toUpperCase();
 
             const generatedCampaignName = `${clientName.toUpperCase()} | ${bookingType} | ${monthYear}`;
+            
+            // Validate naming protocol before submitting
+            if (!clientName.trim() || !bookingType) {
+                throw new Error('Please fill in Client Name and Booking Type before submitting.');
+            }
 
             const bookingData: Omit<BookingRequest, 'id'> = {
                 clientName,
@@ -655,6 +660,36 @@ export default function BookingForm({ isAdmin = false, existingBookings = [], se
             {bookingType === 'ADS_IN_ESEND' && renderSection('ADS_IN_ESEND')}
 
             {/* SUBMIT */}
+            {/* Live Campaign Name Preview */}
+            {clientName && bookingType && (
+                <div style={{
+                    marginTop: '2rem',
+                    padding: '1rem 1.5rem',
+                    background: 'rgba(99, 102, 241, 0.08)',
+                    border: '1px solid rgba(99, 102, 241, 0.3)',
+                    borderRadius: '10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    flexWrap: 'wrap' as 'wrap'
+                }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>📋 Campaign Name Preview:</span>
+                    <code style={{
+                        fontFamily: 'monospace',
+                        fontSize: '0.95rem',
+                        fontWeight: 700,
+                        color: 'var(--primary)',
+                        letterSpacing: '0.5px'
+                    }}>
+                        {clientName.toUpperCase()} | {bookingType} | {(() => {
+                            const ref = selectedDates.length > 0 ? selectedDates[0] :
+                                (formData.audioStartDate || formData.displayStartDate || new Date().toISOString().split('T')[0]);
+                            try { return format(new Date(ref), 'MMM yy').toUpperCase(); } catch { return 'MON YY'; }
+                        })()}
+                    </code>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>This name is auto-generated and enforced by the system.</span>
+                </div>
+            )}
             <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
                 <button
                     type="button"
