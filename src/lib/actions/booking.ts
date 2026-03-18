@@ -32,7 +32,12 @@ export async function getBookings() {
         startDate: b.startDate.toISOString().split('T')[0], // YYYY-MM-DD
         endDate: b.endDate.toISOString().split('T')[0],
         emailDates: b.emailDates ? JSON.parse(b.emailDates) : undefined,
-        additionalDetails: b.additionalDetails ? JSON.parse(b.additionalDetails) : undefined
+        additionalDetails: b.additionalDetails ? JSON.parse(b.additionalDetails) : undefined,
+        // Serialize all Date objects for safe client component passing
+        createdAt: b.createdAt instanceof Date ? b.createdAt.toISOString() : b.createdAt,
+        updatedAt: b.updatedAt instanceof Date ? b.updatedAt.toISOString() : b.updatedAt,
+        expiresAt: (b as any).expiresAt instanceof Date ? (b as any).expiresAt.toISOString() : (b as any).expiresAt ?? null,
+        lastAlertSentAt: (b as any).lastAlertSentAt instanceof Date ? (b as any).lastAlertSentAt.toISOString() : (b as any).lastAlertSentAt ?? null,
     }));
 }
 
