@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import BookingDetailsModal from './BookingDetailsModal';
 import { useRouter } from 'next/navigation';
+import ReservationTimer from './ReservationTimer';
 
 const TYPE_LABELS: Record<string, string> = {
     AUDIO: '🔈 Audio',
@@ -215,6 +216,10 @@ export default function CampaignTable({ bookings }: { bookings: any[] }) {
                                         <span style={{ fontSize: '0.78rem', padding: '0.25rem 0.6rem', borderRadius: '4px', fontWeight: 600, ...statusStyle }}>
                                             ● {booking.status}
                                         </span>
+                                        <ReservationTimer
+                                            expiresAt={booking.expiresAt ?? null}
+                                            status={booking.status}
+                                        />
                                     </td>
                                     <td style={{ padding: '1rem' }}>
                                         <button
