@@ -308,10 +308,10 @@ export default function BookingForm({ isAdmin = false, existingBookings = [], se
     const defaultFormConfig = {
         bookingTypeQuestion: 'What would you like to book? *',
         bookingTypes: [
-            { id: 'AUDIO', label: 'Audio Ad', description: 'Premier Gospel, WA, CTY' },
-            { id: 'DISPLAY', label: 'Display Ads', description: 'MPU, Leaderboard, Skyscraper' },
-            { id: 'BESPOKE_ESEND', label: 'Bespoke E-sends', description: 'Standalone email campaigns' },
-            { id: 'ADS_IN_ESEND', label: 'Ads in E-sends', description: 'Ads within existing newsletters' }
+            { id: 'AUDIO', label: '🔈 Audio Ad', description: 'Spots on Premier Gospel, WA, CTY radio streams' },
+            { id: 'DISPLAY', label: '💻 Display Ad', description: 'MPU, Leaderboard, Skyscraper banners on websites' },
+            { id: 'BESPOKE_ESEND', label: '✉️ Bespoke E-send', description: 'Standalone branded email sent to a mailing list' },
+            { id: 'ADS_IN_ESEND', label: '📰 Ad in Newsletter', description: 'Ad slot within an existing newsletter (Daily Content, WA, CTY, etc.)' }
         ],
         fields: [
             // General Section

@@ -16,6 +16,7 @@ export default function Sidebar() {
         { label: 'Availability', href: '/availability' },
         { label: 'Inventory', href: '/inventory' },
         { label: 'Campaigns', href: '/campaigns' },
+        { label: 'E-Send Archive', href: '/e-send-archive' },
         { label: 'Admin', href: '/admin' },
     ];
 
