@@ -7,17 +7,19 @@ import CsvDownloadButton from '../../../../components/campaigns/CsvDownloadButto
 
 export const dynamic = 'force-dynamic';
 
-export default async function CampaignAuditPage({ params }: { params: { id: string } }) {
+export default async function CampaignAuditPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+
     // Fetch directly in the page to avoid server action serialization issues
     const booking = await prisma.booking.findUnique({
-        where: { id: params.id },
+        where: { id },
         include: { audioTarget: true }
     });
 
     if (!booking) notFound();
 
     const logsRaw = await (prisma as any).auditLog.findMany({
-        where: { bookingId: params.id },
+        where: { bookingId: id },
         orderBy: { createdAt: 'desc' }
     });
 
