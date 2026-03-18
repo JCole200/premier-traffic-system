@@ -41,6 +41,9 @@ export default function MasterViewDashboard({ initialBookings, inventoryItems }:
     const [selectedBooking, setSelectedBooking] = useState<any>(null);
     const [displayMode, setDisplayMode] = useState<'CALENDAR' | 'YEAR' | 'REPORT'>('CALENDAR');
     const [searchQuery, setSearchQuery] = useState('');
+    const [customStartDate, setCustomStartDate] = useState('');
+    const [customEndDate, setCustomEndDate] = useState('');
+    const [isAllDates, setIsAllDates] = useState(true);
 
     // Stats Calculation
     const stats = useMemo(() => {
@@ -59,10 +62,21 @@ export default function MasterViewDashboard({ initialBookings, inventoryItems }:
             ? inventoryItems
             : inventoryItems.filter(i => i.type === filterType);
 
+        let dateFilteredBookings = filteredBookings;
+        if (!isAllDates && customStartDate && customEndDate) {
+            const startTime = new Date(customStartDate).getTime();
+            const endTime = new Date(customEndDate).getTime() + 86399999;
+            dateFilteredBookings = dateFilteredBookings.filter(b => {
+                const bStart = new Date(b.startDate).getTime();
+                const bEnd = new Date(b.endDate).getTime();
+                return bStart <= endTime && bEnd >= startTime;
+            });
+        }
+
         totalCapacity = filteredItems.reduce((acc, i) => acc + i.totalCapacity, 0);
 
-        filteredBookings.forEach(b => {
-            const bookedAmount = (b.audioSpots || 0) + (b.displayImpressions || 0) + (b.emailDates ? (Array.isArray(b.emailDates) ? b.emailDates.length : 0) : 0);
+        dateFilteredBookings.forEach(b => {
+            const bookedAmount = (b.audioSpots || 0) + (b.displayImpressions || 0) + (b.emailDates ? (Array.isArray(b.emailDates) ? b.emailDates.length : JSON.parse(b.emailDates || '[]').length) : 0);
             totalBooked += bookedAmount;
 
             // Simple delivery simulation
@@ -88,7 +102,7 @@ export default function MasterViewDashboard({ initialBookings, inventoryItems }:
             deliveredPct: totalBooked > 0 ? (totalDelivered / totalBooked) * 100 : 0,
             availablePct: totalCapacity > 0 ? (totalAvailable / totalCapacity) * 100 : 0,
         };
-    }, [initialBookings, inventoryItems, filterType]);
+    }, [initialBookings, inventoryItems, filterType, isAllDates, customStartDate, customEndDate]);
 
     // Calendar Events
     const events = useMemo<CalendarEvent[]>(() => {
@@ -118,6 +132,16 @@ export default function MasterViewDashboard({ initialBookings, inventoryItems }:
             );
         }
 
+        if (!isAllDates && customStartDate && customEndDate) {
+            const startTime = new Date(customStartDate).getTime();
+            const endTime = new Date(customEndDate).getTime() + 86399999;
+            filtered = filtered.filter(b => {
+                const bStart = new Date(b.startDate).getTime();
+                const bEnd = new Date(b.endDate).getTime();
+                return bStart <= endTime && bEnd >= startTime;
+            });
+        }
+
         return filtered.map(b => {
             let color = 'var(--primary)';
             if (b.category === 'GIFT') color = 'var(--accent-cyan)';
@@ -133,7 +157,7 @@ export default function MasterViewDashboard({ initialBookings, inventoryItems }:
                 style: { backgroundColor: color }
             };
         });
-    }, [initialBookings, filterType, filterCategory, searchQuery]);
+    }, [initialBookings, filterType, filterCategory, searchQuery, isAllDates, customStartDate, customEndDate]);
 
     const eventPropGetter = (event: CalendarEvent) => ({
         style: {
@@ -257,9 +281,28 @@ export default function MasterViewDashboard({ initialBookings, inventoryItems }:
                         else setDate(new Date(date.getFullYear() + 1, 0, 1));
                     }}>→</button>
                 </div>
+                
+                <div style={{ width: '1px', height: '24px', background: 'var(--border-subtle)' }} />
+
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <input 
+                        type="date" 
+                        value={customStartDate} 
+                        onChange={(e) => { setCustomStartDate(e.target.value); setIsAllDates(false); if(e.target.value) setDate(new Date(e.target.value)); }} 
+                        style={{ padding: '0.5rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-subtle)', color: 'white', fontSize: '0.8rem' }}
+                    />
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>to</span>
+                    <input 
+                        type="date" 
+                        value={customEndDate} 
+                        onChange={(e) => { setCustomEndDate(e.target.value); setIsAllDates(false); }} 
+                        style={{ padding: '0.5rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-subtle)', color: 'white', fontSize: '0.8rem' }}
+                    />
+                </div>
                 <button
-                    onClick={() => setDate(new Date('2020-01-01'))} // Symbolic for "All Time"
-                    style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'transparent', fontSize: '0.8rem' }}
+                    onClick={() => { setIsAllDates(true); setCustomStartDate(''); setCustomEndDate(''); setDate(new Date()); }}
+                    className={isAllDates ? 'btn-primary' : ''}
+                    style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: isAllDates ? 'var(--primary)' : 'transparent', fontSize: '0.8rem' }}
                 >Show All Dates</button>
             </div>
 
