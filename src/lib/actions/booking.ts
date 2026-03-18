@@ -200,10 +200,15 @@ export async function deleteBooking(id: string) {
 
 export async function getAuditLogs(bookingId: string) {
     if (!bookingId) return [];
-    return await (prisma as any).auditLog.findMany({
+    const logs = await (prisma as any).auditLog.findMany({
         where: { bookingId },
         orderBy: { createdAt: 'desc' }
     });
+    // Serialize Date objects so they can be safely passed to client components
+    return logs.map((log: any) => ({
+        ...log,
+        createdAt: log.createdAt instanceof Date ? log.createdAt.toISOString() : log.createdAt
+    }));
 }
 
 // Fetch single booking
