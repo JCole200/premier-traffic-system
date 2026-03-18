@@ -15,7 +15,7 @@ export default async function Home() {
     return (
         <main className="grid-dashboard">
             <Sidebar />
-            <section style={{ padding: '2rem', height: '100vh', overflow: 'auto' }}>
+            <section style={{ padding: '2rem', minHeight: '100vh' }}>
                 <header style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                         <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>Dashboard</h1>

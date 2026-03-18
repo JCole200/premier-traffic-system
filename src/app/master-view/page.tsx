@@ -14,7 +14,7 @@ export default async function MasterViewPage() {
     return (
         <main className="grid-dashboard">
             <Sidebar />
-            <section style={{ padding: '2rem', height: '100vh', overflow: 'auto' }}>
+            <section style={{ padding: '2rem', minHeight: '100vh' }}>
                 <header style={{ marginBottom: '2rem' }}>
                     <h2 style={{ fontSize: '1.8rem', fontWeight: 600 }}>
                         Master Dashboard &amp; Calendar
