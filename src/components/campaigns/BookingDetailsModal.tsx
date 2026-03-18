@@ -61,7 +61,25 @@ export default function BookingDetailsModal({ booking, onClose }: BookingDetails
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                     <h2 style={{ fontSize: '1.5rem' }}>{isEditing ? 'Edit Booking' : 'Booking Details'}</h2>
-                    <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '1.5rem' }}>×</button>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        {!isEditing && (
+                            <button 
+                                onClick={() => router.push(`/campaigns/${booking.id}/audit`)}
+                                style={{
+                                    padding: '0.4rem 0.8rem',
+                                    borderRadius: '6px',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    border: '1px solid var(--border-subtle)',
+                                    color: 'var(--text-muted)',
+                                    fontSize: '0.8rem',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                📜 Full History
+                            </button>
+                        )}
+                        <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+                    </div>
                 </div>
 
                 <div style={{ display: 'grid', gap: '1rem' }}>

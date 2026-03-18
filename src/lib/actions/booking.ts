@@ -206,6 +206,23 @@ export async function getAuditLogs(bookingId: string) {
     });
 }
 
+// Fetch single booking
+export async function getBookingById(id: string) {
+    const b = await prisma.booking.findUnique({
+        where: { id },
+        include: { audioTarget: true }
+    });
+    if (!b) return null;
+
+    return {
+        ...b,
+        startDate: b.startDate.toISOString().split('T')[0],
+        endDate: b.endDate.toISOString().split('T')[0],
+        emailDates: b.emailDates ? JSON.parse(b.emailDates) : undefined,
+        additionalDetails: b.additionalDetails ? JSON.parse(b.additionalDetails) : undefined
+    };
+}
+
 // Availability Check (Server Side)
 export async function checkAvailability(type: string, start: string, end: string, targetId?: string) {
     // 1. Get Baseline
