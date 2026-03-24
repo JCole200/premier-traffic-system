@@ -73,6 +73,7 @@ export default function ConflictRuleManager({ initialRules }: Props) {
                     category: form.category,
                     conflictsWith: form.conflictsWith,
                     maxDaily: form.maxDaily,
+                    bookingType: form.bookingType,
                     description: form.description,
                 });
                 setRules(prev => prev.map(r => r.id === editingId
@@ -84,6 +85,8 @@ export default function ConflictRuleManager({ initialRules }: Props) {
                     category: form.category,
                     conflictsWith: form.conflictsWith,
                     maxDaily: form.maxDaily,
+                    bookingType: form.bookingType,
+                    description: form.description,
                 });
                 setRules(prev => [{ ...rule, conflictsWith: JSON.stringify(form.conflictsWith) }, ...prev]);
             }

@@ -75,7 +75,9 @@ model AuditLog {
 model BookingRule {
   id               String   @id @default(uuid())
   name             String
+  description      String?
   category         String   // The category this rule applies to
+  bookingType      String   @default("ANY") // ANY, AUDIO, DISPLAY, BESPOKE_ESEND, ADS_IN_ESEND
   conflictsWith    String   @default("[]") // JSON array of categories it cannot overlap with
   maxDaily         Int      @default(1)
   isActive         Boolean  @default(true)

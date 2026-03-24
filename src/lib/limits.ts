@@ -15,7 +15,8 @@ export async function validateBookingRules(
     dateStrings: string[],
     emailLists: string[] = [], // Lists selected for this booking
     rangeStart?: string,
-    rangeEnd?: string
+    rangeEnd?: string,
+    excludeId?: string
 ): Promise<ValidationResult> {
 
     // Only apply these complex rules to BESPOKE_ESEND
@@ -145,12 +146,32 @@ export async function validateBookingRules(
     }
 
     // 5. Dynamic Category Conflict Rules
-    const dynamicRules = await (prisma as any).bookingRule.findMany({
-        where: { isActive: true, category: category }
+    // Fetch all active rules to check for both primary and bidirectional conflicts
+    const allActiveRules = await (prisma as any).bookingRule.findMany({
+        where: { isActive: true }
     });
 
-    if (dynamicRules.length > 0) {
-        // Collect all dates to check. If it's a range, we check every day in between.
+    const relevantRules = allActiveRules.filter((rule: any) => {
+        // 1. Check if category matches (primary or in conflicts list)
+        const isCatMatch = rule.category === category || (() => {
+            try {
+                const conflicts = JSON.parse(rule.conflictsWith) as string[];
+                return conflicts.includes(category);
+            } catch { return false; }
+        })();
+
+        if (!isCatMatch) return false;
+
+        // 2. Check if booking type matches
+        if (rule.bookingType && rule.bookingType !== 'ANY' && rule.bookingType !== bookingType) {
+            return false;
+        }
+
+        return true;
+    });
+
+    if (relevantRules.length > 0) {
+        // Collect all dates to check.
         let allDatesToCheck = [...dateStrings];
         if (rangeStart && rangeEnd) {
             const start = parseISO(rangeStart);
@@ -161,37 +182,42 @@ export async function validateBookingRules(
                 current = new Date(current.getTime() + 24 * 60 * 60 * 1000);
             }
         }
-        // Deduplicate
         allDatesToCheck = Array.from(new Set(allDatesToCheck));
 
-        for (const rule of dynamicRules) {
+        for (const rule of relevantRules) {
             const conflictCategories = JSON.parse(rule.conflictsWith) as string[];
-            const allRelevantCategories = Array.from(new Set([category, ...conflictCategories]));
+            const allRelevantCategories = Array.from(new Set([rule.category, ...conflictCategories]));
 
             for (const dateStr of allDatesToCheck) {
-                const dateObj = parseISO(dateStr);
+                // Ensure we use UTC midnight for the check date
+                const dateObj = new Date(`${dateStr}T00:00:00Z`);
+                const endOfDayObj = new Date(`${dateStr}T23:59:59.999Z`);
 
                 // Find any booking of relevant category that covers this specific day
                 const conflicts = await prisma.booking.findMany({
                     where: {
                         status: { in: ['CONFIRMED', 'RESERVED'] },
                         category: { in: allRelevantCategories },
+                        id: excludeId ? { not: excludeId } : undefined, // Exclude current booking during updates
                         OR: [
                             { emailDates: { contains: dateStr } }, // E-sends on this day
                             {
                                 AND: [
-                                    { startDate: { lte: dateObj } },
+                                    { startDate: { lte: endOfDayObj } },
                                     { endDate: { gte: dateObj } }
                                 ]
                             } // Range bookings covering this day
                         ]
-                    }
+                    } as any
                 });
 
-                if (conflicts.length >= rule.maxDaily) {
+                // Total count includes these existing conflicts + 1 (for the new/updated booking itself)
+                const totalCombined = conflicts.length + 1;
+
+                if (totalCombined > rule.maxDaily) {
                     return {
                         valid: false,
-                        error: `Rule Conflict: "${rule.name}". Category ${category} is limited to ${rule.maxDaily} daily total including: ${conflictCategories.join(', ')}. Found ${conflicts.length} overlapping on ${dateStr}.`
+                        error: `Rule Conflict: "${rule.name}". The total daily limit for category group [${allRelevantCategories.join(', ')}] is ${rule.maxDaily}. Found ${conflicts.length} existing and you are adding 1 on ${dateStr}.`
                     };
                 }
             }

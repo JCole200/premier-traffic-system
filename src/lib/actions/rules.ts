@@ -11,14 +11,18 @@ export async function getBookingRules() {
 
 export async function createBookingRule(data: {
     name: string;
+    description?: string;
     category: string;
+    bookingType?: string;
     conflictsWith: string[];
     maxDaily: number;
 }) {
     const rule = await (prisma as any).bookingRule.create({
         data: {
             name: data.name,
+            description: data.description || null,
             category: data.category,
+            bookingType: data.bookingType || 'ANY',
             conflictsWith: JSON.stringify(data.conflictsWith),
             maxDaily: data.maxDaily,
             isActive: true
@@ -29,11 +33,12 @@ export async function createBookingRule(data: {
 }
 
 export async function updateBookingRule(id: string, data: any) {
-    if (data.conflictsWith) data.conflictsWith = JSON.stringify(data.conflictsWith);
+    const updateData = { ...data };
+    if (data.conflictsWith) updateData.conflictsWith = JSON.stringify(data.conflictsWith);
 
     const updated = await (prisma as any).bookingRule.update({
         where: { id },
-        data
+        data: updateData
     });
     revalidatePath('/admin');
     return updated;

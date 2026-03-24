@@ -120,9 +120,26 @@ export async function updateBooking(id: string, data: Partial<BookingRequest>) {
     const current = await prisma.booking.findUnique({ where: { id } });
     if (!current) throw new Error('Booking not found');
 
-    const updateData: any = { ...data };
+    // 1. Validate rules for update
+    const details = data.additionalDetails || (current.additionalDetails ? JSON.parse(current.additionalDetails) : {});
+    const emailLists = (details?.emailLists as string[]) || [];
 
-    // Convert dates and JSON
+    const validation = await validateBookingRules(
+        data.department || current.department,
+        data.bookingType || current.bookingType || '',
+        data.category || current.category,
+        data.emailDates || (current.emailDates ? JSON.parse(current.emailDates) : []),
+        emailLists,
+        data.startDate ? data.startDate : current.startDate.toISOString().split('T')[0],
+        data.endDate ? data.endDate : current.endDate.toISOString().split('T')[0],
+        id
+    );
+
+    if (!validation.valid) {
+        throw new Error(validation.error || 'Update violated business rules');
+    }
+
+    const updateData: any = { ...data };
     if (data.startDate) updateData.startDate = new Date(data.startDate);
     if (data.endDate) updateData.endDate = new Date(new Date(data.endDate).setHours(23, 59, 59, 999));
     if (data.emailDates) updateData.emailDates = JSON.stringify(data.emailDates);
