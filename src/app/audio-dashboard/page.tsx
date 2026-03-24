@@ -8,9 +8,10 @@ import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AudioDashboard({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
-    const { date } = await searchParams;
+export default async function AudioDashboard({ searchParams }: { searchParams: Promise<{ date?: string; endDate?: string }> }) {
+    const { date, endDate } = await searchParams;
     const selectedDate = date || null;
+    const selectedEnd = endDate || null;
 
     if (!selectedDate) {
         return (
@@ -23,14 +24,16 @@ export default async function AudioDashboard({ searchParams }: { searchParams: P
                         <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', lineHeight: 1.6 }}>
                             Choose your campaign start date to see precise audio inventory availability across Radio Streams and Podcasts.
                         </p>
-                        <DateSelectionWizard pathname="/audio-dashboard" />
+                        <DateSelectionWizard pathname="/audio-dashboard" type="AUDIO" />
                     </div>
                 </section>
             </main>
         );
     }
 
-    const end = new Date(new Date(selectedDate).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    const end = selectedEnd
+        ? new Date(selectedEnd).toISOString()
+        : new Date(new Date(selectedDate!).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
     const allItems = await getInventoryItems();
     const audioItems = allItems.filter((i: any) => i.type === 'AUDIO');

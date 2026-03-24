@@ -8,18 +8,6 @@ import { validateBookingRules } from '../limits';
 
 // Fetch all bookings
 export async function getBookings() {
-    // Clean up expired reservations (48h limit)
-    try {
-        await prisma.booking.deleteMany({
-            where: {
-                status: 'RESERVED',
-                expiresAt: { lt: new Date() }
-            } as any
-        });
-    } catch (e) {
-        console.error('Failed to cleanup expired bookings:', e);
-    }
-
     const bookings = await prisma.booking.findMany({
         orderBy: { createdAt: 'desc' },
         include: {

@@ -76,3 +76,16 @@ export async function sendBookingEmail(booking: BookingRequest) {
         console.error('Error sending email:', error);
     }
 }
+
+export async function sendAlert(to: string, subject: string, html: string) {
+    if (!process.env.SMTP_USER || process.env.SMTP_USER.includes('example.com')) {
+        console.log('[MOCK ALERT]', subject);
+        return;
+    }
+    await transporter.sendMail({
+        from: process.env.SMTP_FROM || '"Premier Traffic" <noreply@premier.org.uk>',
+        to,
+        subject,
+        html,
+    });
+}

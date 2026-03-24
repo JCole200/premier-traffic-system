@@ -163,3 +163,14 @@ export const GEO_DISTRIBUTION = {
     UK_NI: 0.03,
     UK_LONDON: 0.15
 };
+
+// --- ALERT & EXPIRY SETTINGS ---
+
+export const RESERVATION_EXPIRY_HOURS = 48;
+
+export const ALERT_SCHEDULES = {
+    // Days before startDate to send copy-chasing reminders
+    COPY_CHASE_DAYS: [14, 7, 3, 1],
+    // Days before endDate to send campaign-end alerts
+    CAMPAIGN_END_DAYS: [7, 1]
+};
