@@ -1,7 +1,7 @@
 import Sidebar from '../components/layout/Sidebar';
-import Link from 'next/link';
 import { getBookings } from '../lib/actions/booking';
 import UserDashboard from '../components/dashboard/UserDashboard';
+import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,14 +9,14 @@ export default async function Home() {
     let bookings = [];
     try {
         bookings = await getBookings();
-    } catch (error) {
-        console.error('Failed to load dashboard bookings:', error);
+    } catch (e) {
+        console.error('Failed to load root bookings:', e);
     }
 
     return (
         <main className="grid-dashboard">
             <Sidebar />
-            <section style={{ padding: '2rem', minHeight: '100vh' }}>
+            <section style={{ padding: '2rem' }}>
                 <header style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                         <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>Dashboard</h1>
