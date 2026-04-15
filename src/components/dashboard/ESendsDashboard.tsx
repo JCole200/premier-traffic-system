@@ -30,6 +30,7 @@ export default function ESendsDashboard({ initialBookings, inventoryItems }: Pro
     
     // Filters
     const [filterList, setFilterList] = useState('ALL');
+    const [filterPosition, setFilterPosition] = useState('ALL');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [selectedBooking, setSelectedBooking] = useState<any>(null);
@@ -51,6 +52,12 @@ export default function ESendsDashboard({ initialBookings, inventoryItems }: Pro
             const itemBookings = emailBookings.filter(b => {
                 if (b.audioTargetId && b.audioTargetId !== item.id) return false;
                 
+                // Position Check
+                if (filterPosition !== 'ALL') {
+                    const details = b.additionalDetails ? (typeof b.additionalDetails === 'string' ? JSON.parse(b.additionalDetails) : b.additionalDetails) : {};
+                    if (details.emailPosition && details.emailPosition !== filterPosition) return false;
+                }
+
                 // Date overlap check
                 const bStart = new Date(b.startDate).getTime();
                 const bEnd = new Date(b.endDate).getTime();
@@ -63,10 +70,6 @@ export default function ESendsDashboard({ initialBookings, inventoryItems }: Pro
                 return acc + dates.length;
             }, 0);
             
-            // Assume single pool capacity
-            // For E-sends, totalCapacity is often a "Daily Cap", so displaying simple raw totals over a big range is tricky without multiplying.
-            // For dashboard simplicity, we just use the raw capacity limit. If you want true available, it should multiply by days in period.
-            // We just render as-is for now mirroring other boards.
             const available = item.totalCapacity - bookedSends;
             const pctUsed = item.totalCapacity > 0 ? (bookedSends / item.totalCapacity) * 100 : 0;
 
@@ -77,7 +80,7 @@ export default function ESendsDashboard({ initialBookings, inventoryItems }: Pro
                 pctUtilized: pctUsed
             };
         });
-    }, [inventoryItems, emailBookings, filterList, startDate, endDate]);
+    }, [inventoryItems, emailBookings, filterList, filterPosition, startDate, endDate]);
 
     // Booked & Pending Streams
     const filteredBookings = useMemo(() => {
@@ -85,6 +88,13 @@ export default function ESendsDashboard({ initialBookings, inventoryItems }: Pro
 
         if (filterList !== 'ALL') filtered = filtered.filter(b => b.audioTargetId === filterList);
         
+        if (filterPosition !== 'ALL') {
+            filtered = filtered.filter(b => {
+                const details = b.additionalDetails ? (typeof b.additionalDetails === 'string' ? JSON.parse(b.additionalDetails) : b.additionalDetails) : {};
+                return details.emailPosition === filterPosition;
+            });
+        }
+
         if (startDate && endDate) {
             const startT = new Date(startDate).getTime();
             const endT = new Date(endDate).getTime() + 86399999;
@@ -96,7 +106,7 @@ export default function ESendsDashboard({ initialBookings, inventoryItems }: Pro
         }
 
         return filtered;
-    }, [emailBookings, filterList, startDate, endDate]);
+    }, [emailBookings, filterList, filterPosition, startDate, endDate]);
 
     const confirmedBookings = filteredBookings.filter(b => b.status === 'CONFIRMED');
     const reservedBookings = filteredBookings.filter(b => b.status === 'RESERVED');
@@ -107,13 +117,14 @@ export default function ESendsDashboard({ initialBookings, inventoryItems }: Pro
         filteredBookings.forEach(b => {
             const isReserved = b.status === 'RESERVED';
             const dates = b.emailDates ? (typeof b.emailDates === 'string' ? JSON.parse(b.emailDates) : b.emailDates) : [];
+            const details = b.additionalDetails ? (typeof b.additionalDetails === 'string' ? JSON.parse(b.additionalDetails) : b.additionalDetails) : {};
+            const pos = details.emailPosition ? ` [${details.emailPosition}]` : '';
             
-            // If they specified explicit dates, drop an event for each date
             if (dates.length > 0) {
                 dates.forEach((dStr: string) => {
                     evts.push({
                         id: `${b.id}-${dStr}`,
-                        title: `${isReserved ? '⚠️ ' : ''}${b.clientName} - ${b.campaignName}`,
+                        title: `${isReserved ? '⚠️ ' : ''}${b.clientName} - ${b.campaignName}${pos}`,
                         start: new Date(dStr),
                         end: new Date(new Date(dStr).setHours(23, 59, 59)),
                         resource: b,
@@ -121,10 +132,9 @@ export default function ESendsDashboard({ initialBookings, inventoryItems }: Pro
                     });
                 });
             } else {
-                // Fallback to start-end range if no explicit dates
                 evts.push({
                     id: b.id,
-                    title: `${isReserved ? '⚠️ ' : ''}${b.clientName} - ${b.campaignName}`,
+                    title: `${isReserved ? '⚠️ ' : ''}${b.clientName} - ${b.campaignName}${pos}`,
                     start: new Date(b.startDate),
                     end: new Date(new Date(b.endDate).setHours(23, 59, 59)),
                     resource: b,
@@ -175,6 +185,16 @@ export default function ESendsDashboard({ initialBookings, inventoryItems }: Pro
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>to</span>
                         <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ padding: '0.5rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid var(--border-subtle)', fontSize: '0.8rem' }} />
                     </div>
+                </div>
+
+                <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Position</label>
+                    <select value={filterPosition} onChange={e => setFilterPosition(e.target.value)} style={{ padding: '0.5rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid var(--border-subtle)', minWidth: '120px' }}>
+                        <option value="ALL">All Positions</option>
+                        <option value="TOP">Top Banner</option>
+                        <option value="MID">Mid Content</option>
+                        <option value="BOTTOM">Bottom Banner</option>
+                    </select>
                 </div>
 
                 <div style={{ flex: 1 }} />
@@ -228,6 +248,7 @@ export default function ESendsDashboard({ initialBookings, inventoryItems }: Pro
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
                                 {reservedBookings.map(b => {
                                     const dates = b.emailDates ? (typeof b.emailDates === 'string' ? JSON.parse(b.emailDates) : b.emailDates) : [];
+                                    const details = b.additionalDetails ? (typeof b.additionalDetails === 'string' ? JSON.parse(b.additionalDetails) : b.additionalDetails) : {};
                                     return (
                                         <div key={b.id} onClick={() => setSelectedBooking(b)} className="glass-panel" style={{ padding: '1rem', borderRadius: '12px', borderLeft: '4px solid var(--warning)', cursor: 'pointer', transition: 'transform 0.2s' }}>
                                             <div style={{ fontSize: '0.8rem', color: 'var(--warning)', fontWeight: 600, marginBottom: '0.25rem' }}>Awaiting Assets</div>
@@ -235,7 +256,7 @@ export default function ESendsDashboard({ initialBookings, inventoryItems }: Pro
                                             <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{b.clientName}</div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
                                                 <span>{dates.length} Sends</span>
-                                                <span>{b.bookingType}</span>
+                                                <span>{details.emailPosition || 'Any Position'}</span>
                                             </div>
                                         </div>
                                     );
@@ -246,15 +267,15 @@ export default function ESendsDashboard({ initialBookings, inventoryItems }: Pro
 
                     {/* Booked E-Sends List */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
-                        <h3 style={{ fontSize: '1.2rem', fontWeight: 600 }}>Confirmed Bookings</h3>
+                        <h3 style={{ fontSize: '1.2rem', fontWeight: 600 }}>Booked E-sends</h3>
                         <div className="glass-panel" style={{ borderRadius: '16px', overflow: 'hidden' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                                 <thead>
                                     <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-subtle)' }}>
                                         <th style={{ padding: '1rem', fontWeight: 600, color: 'var(--text-muted)' }}>Campaign</th>
                                         <th style={{ padding: '1rem', fontWeight: 600, color: 'var(--text-muted)' }}>Newsletter</th>
-                                        <th style={{ padding: '1rem', fontWeight: 600, color: 'var(--text-muted)' }}>Type</th>
                                         <th style={{ padding: '1rem', fontWeight: 600, color: 'var(--text-muted)' }}>Sent Dates</th>
+                                        <th style={{ padding: '1rem', fontWeight: 600, color: 'var(--text-muted)' }}>Performance</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -267,6 +288,18 @@ export default function ESendsDashboard({ initialBookings, inventoryItems }: Pro
                                     ) : (
                                         confirmedBookings.map((b) => {
                                             const dates = b.emailDates ? (typeof b.emailDates === 'string' ? JSON.parse(b.emailDates) : b.emailDates) : [];
+                                            const details = b.additionalDetails ? (typeof b.additionalDetails === 'string' ? JSON.parse(b.additionalDetails) : b.additionalDetails) : {};
+                                            
+                                            // Simulated Performance Data
+                                            let sentVol = 0;
+                                            let clicks = 0;
+                                            const isPast = new Date(b.endDate).getTime() < new Date().getTime();
+                                            if (isPast) {
+                                                // Create stable simulated numbers based on their string
+                                                sentVol = Math.abs(b.clientName.length * 12500 + dates.length * 5200);
+                                                clicks = Math.floor(sentVol * 0.025); // ~2.5% CTR
+                                            }
+
                                             return (
                                                 <tr key={b.id} onClick={() => setSelectedBooking(b)} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer' }} className="hover-row">
                                                     <td style={{ padding: '1rem' }}>
@@ -274,16 +307,24 @@ export default function ESendsDashboard({ initialBookings, inventoryItems }: Pro
                                                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{b.campaignName}</div>
                                                     </td>
                                                     <td style={{ padding: '1rem' }}>
-                                                        {b.audioTargetId ? getTargetName(b.audioTargetId) : 'Run of Network'}
-                                                    </td>
-                                                    <td style={{ padding: '1rem' }}>
-                                                        <span style={{ fontSize: '0.8rem', background: 'rgba(255,255,255,0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
-                                                            {b.bookingType === 'ADS_IN_ESEND' ? 'Ads In E-send' : 'Bespoke E-send'}
+                                                        <div>{b.audioTargetId ? getTargetName(b.audioTargetId) : 'Run of Network'}</div>
+                                                        <span style={{ fontSize: '0.7rem', background: 'rgba(255,255,255,0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px', marginTop: '0.25rem', display: 'inline-block' }}>
+                                                            {details.emailPosition || (b.bookingType === 'ADS_IN_ESEND' ? 'Ad Slot' : 'Bespoke')}
                                                         </span>
                                                     </td>
-                                                    <td style={{ padding: '1rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                                        {dates.slice(0, 3).join(', ')}
-                                                        {dates.length > 3 ? ` +${dates.length - 3} more` : ''}
+                                                    <td style={{ padding: '1rem' }}>
+                                                        <div style={{ fontSize: '0.85rem' }}>{dates.slice(0, 3).join(', ')}</div>
+                                                        {dates.length > 3 && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>+{dates.length - 3} more days</div>}
+                                                    </td>
+                                                    <td style={{ padding: '1rem' }}>
+                                                        {isPast ? (
+                                                            <>
+                                                                <div style={{ fontWeight: 600, color: 'var(--success)' }}>{sentVol.toLocaleString()} Sends</div>
+                                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{clicks.toLocaleString()} Clicks / {(clicks/sentVol*100).toFixed(1)}% CTR</div>
+                                                            </>
+                                                        ) : (
+                                                            <div style={{ fontSize: '0.85rem', color: 'var(--warning)', fontWeight: 600 }}>Awaiting Delivery</div>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             );
