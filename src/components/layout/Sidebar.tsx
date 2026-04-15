@@ -1,3 +1,8 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import ThemeToggle from '../ThemeToggle';
 import { useAuth } from '../../lib/auth-context';
 
 export default function Sidebar() {
