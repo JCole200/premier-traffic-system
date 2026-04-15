@@ -145,7 +145,6 @@ export async function updateBooking(id: string, data: Partial<BookingRequest>) {
     if (data.emailDates) updateData.emailDates = JSON.stringify(data.emailDates);
     if (data.additionalDetails) updateData.additionalDetails = JSON.stringify(data.additionalDetails);
 
-    // Remove immutable or unrelated fields if any (like id)
     delete updateData.id;
 
     // 1. Perform Update
@@ -154,13 +153,43 @@ export async function updateBooking(id: string, data: Partial<BookingRequest>) {
         data: updateData
     });
 
-    // 2. Create Audit Logs for changed fields
+    // 2. Event Hooks for Active Notifications
+    const TRAFFIC_EMAIL = 'traffic@premier.org.uk';
+    
+    // Hook A: Cancellation
+    if (data.status === 'CANCELLED' && current.status !== 'CANCELLED') {
+        const html = `
+            <div style="font-family:Arial,sans-serif;color:#333;max-width:600px;">
+                <h2 style="color:#ef4444;border-bottom:2px solid #ef4444;padding-bottom:0.5rem;">⚠️ Campaign Cancelled</h2>
+                <p>The campaign for <strong>${current.clientName}</strong> (${current.campaignName}) has been explicitly CANCELLED by ${data.bookerName || 'a user'}.</p>
+                <p>Inventory has been returned to the global pool.</p>
+            </div>`;
+        import('../email').then((m) => m.sendAlert(TRAFFIC_EMAIL, `CANCELLED: ${current.clientName}`, html).catch(()=>null));
+    }
+
+    // Hook B: Date Changes
+    if ((data.startDate && data.startDate !== current.startDate.toISOString().split('T')[0]) || 
+        (data.endDate && data.endDate !== current.endDate.toISOString().split('T')[0])) {
+        const html = `
+            <div style="font-family:Arial,sans-serif;color:#333;max-width:600px;">
+                <h2 style="color:#f59e0b;border-bottom:2px solid #f59e0b;padding-bottom:0.5rem;">🔄 Campaign Dates Shifted</h2>
+                <p>The campaign dates for <strong>${current.clientName}</strong> (${current.campaignName}) were modified.</p>
+                <table style="width:100%;border-collapse:collapse;margin:1rem 0;">
+                    <tr><td style="padding:0.5rem 1rem;"><strong>OLD Start Date</strong></td><td style="padding:0.5rem 1rem;">${current.startDate.toISOString().split('T')[0]}</td></tr>
+                    <tr style="background:#fef3c7;"><td style="padding:0.5rem 1rem;"><strong>NEW Start Date</strong></td><td style="padding:0.5rem 1rem;">${data.startDate || current.startDate.toISOString().split('T')[0]}</td></tr>
+                    <tr><td style="padding:0.5rem 1rem;"><strong>OLD End Date</strong></td><td style="padding:0.5rem 1rem;">${current.endDate.toISOString().split('T')[0]}</td></tr>
+                    <tr style="background:#fef3c7;"><td style="padding:0.5rem 1rem;"><strong>NEW End Date</strong></td><td style="padding:0.5rem 1rem;">${data.endDate || current.endDate.toISOString().split('T')[0]}</td></tr>
+                </table>
+            </div>`;
+        import('../email').then((m) => m.sendAlert(TRAFFIC_EMAIL, `DATE SHIFT: ${current.clientName}`, html).catch(()=>null));
+    }
+
+    // 3. Create Audit Logs for changed fields
     const changes: Record<string, unknown>[] = [];
     Object.keys(updateData).forEach(key => {
         const oldVal = (current as Record<string, unknown>)[key];
         const newVal = updateData[key];
 
-        // Simple comparison (dates/json objects might be tricky but strings/numbers work well)
         if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
             changes.push({
                 bookingId: id,
@@ -187,16 +216,16 @@ export async function updateBooking(id: string, data: Partial<BookingRequest>) {
 
 // Delete Booking
 export async function deleteBooking(id: string) {
-    // We can't link to the booking after delete if we use relate Cascade?
-    // Actually AuditLog has onDelete: Cascade, so deleting the booking deletes logs.
-    // If we want to KEEP the logs, we should NOT use Cascade.
-    // But usually for compliance you want the logs to exist.
-    // Let's modify the schema slightly to make bookingId optional or use a different approach.
-    // For now, let's keep it simple. Usually "Delete" in these systems is a soft delete (status='CANCELLED').
-    // If we literally delete, the logs go away. 
-
-    // Log the delete action first? 
-    // If we want to keep the trail, soft delete is better.
+    const current = await prisma.booking.findUnique({ where: { id } });
+    if (current) {
+        const TRAFFIC_EMAIL = 'traffic@premier.org.uk';
+        const html = `
+            <div style="font-family:Arial,sans-serif;color:#333;max-width:600px;">
+                <h2 style="color:#ef4444;border-bottom:2px solid #ef4444;padding-bottom:0.5rem;">🔥 Campaign Deleted</h2>
+                <p>The campaign for <strong>${current.clientName}</strong> (${current.campaignName}) was permanently deleted from the active system ledger.</p>
+            </div>`;
+        import('../email').then((m) => m.sendAlert(TRAFFIC_EMAIL, `DELETED: ${current.clientName}`, html).catch(()=>null));
+    }
 
     await prisma.booking.delete({ where: { id } });
 
