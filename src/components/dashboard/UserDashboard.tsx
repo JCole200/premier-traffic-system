@@ -1,6 +1,4 @@
-'use client';
-
-import { useState, useMemo } from 'react';
+import { useAuth } from '@/lib/auth-context';
 import EditBookingModal from '../calendar/EditBookingModal';
 
 interface UserDashboardProps {
@@ -8,18 +6,20 @@ interface UserDashboardProps {
 }
 
 export default function UserDashboard({ initialBookings }: UserDashboardProps) {
-    const [currentUser, setCurrentUser] = useState('Judah Cole');
+    const { session } = useAuth();
     const [searchQuery, setSearchQuery] = useState('');
     const [filterProduct, setFilterProduct] = useState('ALL');
     const [filterStatus, setFilterStatus] = useState('ALL');
     const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
     const [selectedBooking, setSelectedBooking] = useState<any>(null);
 
-    // Mock users for testing
-    const users = ['Judah Cole', 'Admin', 'Jane Doe'];
+    const currentUserEmail = session?.email || '';
 
     const filteredBookings = useMemo(() => {
-        let filtered = initialBookings.filter(b => b.bookerName === currentUser || (!b.bookerName && currentUser === 'Admin'));
+        let filtered = initialBookings.filter(b => 
+            b.bookerName === currentUserEmail || 
+            (session?.role === 'ADMIN')
+        );
 
         if (searchQuery) {
             const q = searchQuery.toLowerCase();
@@ -63,14 +63,8 @@ export default function UserDashboard({ initialBookings }: UserDashboardProps) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: '16px', display: 'flex', gap: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Viewing as:</span>
-                    <select 
-                        value={currentUser} 
-                        onChange={e => setCurrentUser(e.target.value)}
-                        style={{ padding: '0.5rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid var(--border-subtle)' }}
-                    >
-                        {users.map(u => <option key={u} value={u}>{u}</option>)}
-                    </select>
+                    <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Filtering for:</span>
+                    <span style={{ fontWeight: 600, color: 'white' }}>{session?.role === 'ADMIN' ? 'All Campaigns (Admin)' : session?.email}</span>
                 </div>
 
                 <div style={{ width: '1px', height: '24px', background: 'var(--border-subtle)' }} />
