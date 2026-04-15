@@ -6,7 +6,25 @@ import UserDashboard from '../components/dashboard/UserDashboard';
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-    const bookings = await getBookings();
+    let bookings: any[] = [];
+    let error: string | null = null;
+
+    try {
+        bookings = await getBookings();
+    } catch (e: any) {
+        error = e.message || 'Unknown database error';
+        console.error('CRASH IN PAGE:', e);
+    }
+
+    if (error) {
+        return (
+            <div style={{ padding: '2rem', color: 'red', background: 'white' }}>
+                <h1>CRASH DETECTED</h1>
+                <p>{error}</p>
+                <a href="/login">Try Login Page</a>
+            </div>
+        );
+    }
 
     return (
         <main className="grid-dashboard">
