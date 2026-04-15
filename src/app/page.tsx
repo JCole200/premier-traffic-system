@@ -6,12 +6,22 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-    let bookings = [];
+    let rawBookings = [];
     try {
-        bookings = await getBookings();
+        rawBookings = await getBookings();
     } catch (e) {
-        console.error('Failed to load dashboard:', e);
+        console.error('Failed to load dashboard data:', e);
     }
+
+    // Crucial: Sanitize data for Client Component serialization
+    const bookings = rawBookings.map((b: any) => ({
+        ...b,
+        id: b.id.toString(),
+        startDate: b.startDate instanceof Date ? b.startDate.toISOString().split('T')[0] : b.startDate,
+        endDate: b.endDate instanceof Date ? b.endDate.toISOString().split('T')[0] : b.endDate,
+        createdAt: b.createdAt instanceof Date ? b.createdAt.toISOString() : b.createdAt,
+        updatedAt: b.updatedAt instanceof Date ? b.updatedAt.toISOString() : b.updatedAt,
+    }));
 
     return (
         <main className="grid-dashboard">

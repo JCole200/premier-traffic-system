@@ -1,5 +1,6 @@
 'use client';
-import React, { useState, useMemo } from 'react';
+
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import EditBookingModal from '../calendar/EditBookingModal';
 
@@ -8,16 +9,26 @@ interface UserDashboardProps {
 }
 
 export default function UserDashboard({ initialBookings }: UserDashboardProps) {
-    const { session } = useAuth();
+    const { session, isLoading: authLoading } = useAuth();
+    const [mounted, setMounted] = useState(false);
+    
+    // Filter State
     const [searchQuery, setSearchQuery] = useState('');
     const [filterProduct, setFilterProduct] = useState('ALL');
     const [filterStatus, setFilterStatus] = useState('ALL');
     const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
     const [selectedBooking, setSelectedBooking] = useState<any>(null);
 
+    // Ensure hydration safety
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const currentUserEmail = session?.email || '';
 
     const filteredBookings = useMemo(() => {
+        if (!initialBookings) return [];
+        
         let filtered = initialBookings.filter(b => 
             b.bookerName === currentUserEmail || 
             (session?.role === 'ADMIN')
@@ -46,13 +57,13 @@ export default function UserDashboard({ initialBookings }: UserDashboardProps) {
         }
 
         filtered.sort((a, b) => {
-            const dateA = new Date(a.startDate).getTime();
-            const dateB = new Date(b.startDate).getTime();
+            const dateA = a.startDate ? new Date(a.startDate).getTime() : 0;
+            const dateB = b.startDate ? new Date(b.startDate).getTime() : 0;
             return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
         });
 
         return filtered;
-    }, [initialBookings, currentUserEmail, searchQuery, filterProduct, filterStatus, sortOrder]);
+    }, [initialBookings, currentUserEmail, session?.role, searchQuery, filterProduct, filterStatus, sortOrder]);
 
     const getStatusStyle = (status: string) => {
         if (status === 'CONFIRMED') return { bg: 'rgba(34, 197, 94, 0.2)', text: 'var(--success)' };
@@ -60,6 +71,15 @@ export default function UserDashboard({ initialBookings }: UserDashboardProps) {
         if (status === 'CANCELLED') return { bg: 'rgba(239, 68, 68, 0.2)', text: 'var(--danger)' };
         return { bg: 'rgba(255, 255, 255, 0.1)', text: 'var(--text-muted)' };
     };
+
+    // If not mounted yet, render a skeleton or placeholder to avoid SSR mismatch
+    if (!mounted || authLoading) {
+        return (
+            <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', borderRadius: '16px' }}>
+                <div className="animate-pulse" style={{ color: 'var(--text-muted)' }}>Loading Dashboard...</div>
+            </div>
+        );
+    }
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -82,7 +102,8 @@ export default function UserDashboard({ initialBookings }: UserDashboardProps) {
                         background: 'rgba(255,255,255,0.05)',
                         border: '1px solid var(--border-subtle)',
                         width: '250px',
-                        fontSize: '0.9rem'
+                        fontSize: '0.9rem',
+                        color: 'white'
                     }}
                 />
 
@@ -156,7 +177,7 @@ export default function UserDashboard({ initialBookings }: UserDashboardProps) {
                                         </td>
                                         <td style={{ padding: '1rem', fontSize: '0.9rem' }}>
                                             {booking.bookingType === 'AUDIO' && `${booking.audioSpots} Spots`}
-                                            {booking.bookingType === 'DISPLAY' && `${booking.displayImpressions?.toLocaleString()} Imps`}
+                                            {booking.bookingType === 'DISPLAY' && `${(booking.displayImpressions || 0).toLocaleString()} Imps`}
                                             {(booking.bookingType === 'BESPOKE_ESEND' || booking.bookingType === 'ADS_IN_ESEND') && `${booking.emailDates ? booking.emailDates.length : 0} Sends`}
                                         </td>
                                         <td style={{ padding: '1rem' }}>
@@ -198,6 +219,11 @@ export default function UserDashboard({ initialBookings }: UserDashboardProps) {
 
             <style dangerouslySetInnerHTML={{__html:`
                 .hover-row:hover { background: rgba(255,255,255,0.02); }
+                .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+                @keyframes pulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: .5; }
+                }
             `}} />
         </div>
     );
