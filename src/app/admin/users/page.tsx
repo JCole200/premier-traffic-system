@@ -136,13 +136,14 @@ export default function AdminUsersPage() {
                                                 <button 
                                                     onClick={() => handleOpenEdit(user)}
                                                     style={{ 
-                                                        background: 'transparent', 
-                                                        border: '1px solid var(--border-subtle)', 
-                                                        color: 'black', 
+                                                        background: 'rgba(59, 130, 246, 0.1)', 
+                                                        border: '1px solid rgba(59, 130, 246, 0.2)', 
+                                                        color: '#3b82f6', 
                                                         padding: '0.4rem 0.8rem', 
                                                         borderRadius: '6px',
                                                         cursor: 'pointer',
-                                                        fontSize: '0.8rem'
+                                                        fontSize: '0.8rem',
+                                                        fontWeight: 600
                                                     }}
                                                 >
                                                     Edit
