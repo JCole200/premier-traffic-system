@@ -1,3 +1,4 @@
+'use client';
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import EditBookingModal from '../calendar/EditBookingModal';
