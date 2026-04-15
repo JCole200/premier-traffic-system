@@ -1,16 +1,12 @@
 import Sidebar from '../components/layout/Sidebar';
 import Link from 'next/link';
 import { getBookings } from '../lib/actions/booking';
-import { getInventoryItems } from '../lib/actions/admin';
-import MasterViewDashboard from '../components/dashboard/MasterViewDashboard';
+import UserDashboard from '../components/dashboard/UserDashboard';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-    const [bookings, inventoryItems] = await Promise.all([
-        getBookings(),
-        getInventoryItems()
-    ]);
+    const bookings = await getBookings();
 
     return (
         <main className="grid-dashboard">
@@ -19,7 +15,7 @@ export default async function Home() {
                 <header style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                         <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>Dashboard</h1>
-                        <p style={{ color: 'var(--text-muted)' }}>Welcome back, Judah Cole - Live Inventory & Delivery</p>
+                        <p style={{ color: 'var(--text-muted)' }}>Welcome to your Sales View</p>
                     </div>
                     <div style={{ display: 'flex', gap: '1rem' }}>
                         <Link href="/audio-dashboard">
@@ -40,10 +36,7 @@ export default async function Home() {
                     </div>
                 </header>
 
-                <MasterViewDashboard
-                    initialBookings={bookings}
-                    inventoryItems={inventoryItems}
-                />
+                <UserDashboard initialBookings={bookings} />
             </section>
         </main>
     );
