@@ -9,15 +9,12 @@ export default function Sidebar() {
 
     const navItems = [
         { label: 'Dashboard', href: '/' },
-        { label: 'Audio Dashboard', href: '/audio-dashboard' },
-        { label: 'Display Dashboard', href: '/display-dashboard' },
-        { label: 'Master View', href: '/master-view' },
-        { label: 'Booking', href: '/booking' },
-        { label: 'Availability', href: '/availability' },
-        { label: 'Inventory', href: '/inventory' },
-        { label: 'Campaigns', href: '/campaigns' },
-        { label: 'E-Send Archive', href: '/e-send-archive' },
-        { label: 'Admin', href: '/admin' },
+        { label: 'Streaming Inventory', href: '/audio-dashboard' },
+        { label: 'Digital Display Inventory', href: '/display-dashboard' },
+        { label: 'E-sends Inventory', href: '/e-sends' },
+        { label: 'Booking Form', href: '/booking' },
+        { label: 'Reports & Performance', href: '/reports' },
+        { label: 'Archive', href: '/archive' },
     ];
 
     return (

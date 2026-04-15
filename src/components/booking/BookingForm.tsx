@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import AvailabilityCalendar from './AvailabilityCalendar';
 import BespokeCalendar from './BespokeCalendar';
 import { createBooking } from '../../lib/actions/booking';
+import Link from 'next/link';
 
 type BookingType = 'AUDIO' | 'DISPLAY' | 'BESPOKE_ESEND' | 'ADS_IN_ESEND';
 
@@ -504,12 +505,34 @@ export default function BookingForm({ isAdmin = false, existingBookings = [], se
         return (
             <div style={sectionStyle}>
                 <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', color: 'var(--primary)' }}>
-                    {bookingTypesToRender.find((t: any) => t.id === sectionId)?.label || sectionId}
-                </h3>
+                {sectionId === 'BESPOKE_ESEND' ? '✉️ ' : sectionId === 'AUDIO' ? '🔈 ' : '💻 '}
+                {bookingTypesToRender.find((t: any) => t.id === sectionId)?.label || sectionId}
+            </h3>
 
+            {(sectionId === 'AUDIO' || sectionId === 'DISPLAY') && !formData[sectionId === 'AUDIO' ? 'audioStartDate' : 'displayStartDate'] ? (
+                <div style={{
+                    padding: '2rem',
+                    textAlign: 'center',
+                    background: 'rgba(255,165,0,0.05)',
+                    border: '1px dashed orange',
+                    borderRadius: '12px',
+                    margin: '1.5rem 0'
+                }}>
+                    <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⚠️</div>
+                    <p style={{ marginBottom: '1.5rem', color: 'var(--text-main)', fontWeight: 600 }}>
+                        Campaign dates must be selected before booking {sectionId.toLowerCase()} inventory.
+                    </p>
+                    <Link href={sectionId === 'AUDIO' ? '/audio-dashboard' : '/display-dashboard'}>
+                        <button type="button" className="btn-primary" style={{ background: 'orange', border: 'none', padding: '0.8rem 1.5rem' }}>
+                            Go to {sectionId === 'AUDIO' ? 'Audio' : 'Display'} Wizard →
+                        </button>
+                    </Link>
+                </div>
+            ) : (
                 <div style={{ display: 'grid', gap: '1.5rem' }}>
                     {fields.map(renderField)}
                 </div>
+            )}
 
                 {/* Inject Logic-Heavy Components conditionally */}
                 {sectionId === 'BESPOKE_ESEND' && (
