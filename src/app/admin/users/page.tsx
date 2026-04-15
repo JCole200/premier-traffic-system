@@ -138,7 +138,7 @@ export default function AdminUsersPage() {
                                                     style={{ 
                                                         background: 'transparent', 
                                                         border: '1px solid var(--border-subtle)', 
-                                                        color: 'white', 
+                                                        color: 'black', 
                                                         padding: '0.4rem 0.8rem', 
                                                         borderRadius: '6px',
                                                         cursor: 'pointer',
