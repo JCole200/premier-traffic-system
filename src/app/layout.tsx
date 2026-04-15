@@ -4,6 +4,8 @@ import './globals.css'
 import { InventoryProvider } from '../lib/store'
 import { ThemeProvider } from '../lib/theme-context'
 
+import { AuthProvider } from '../lib/auth-context'
+
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
@@ -19,11 +21,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider>
-          <InventoryProvider>
-            {children}
-          </InventoryProvider>
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider>
+            <InventoryProvider>
+              {children}
+            </InventoryProvider>
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   )

@@ -1,26 +1,31 @@
-import prisma from '../src/lib/prisma';
-import { INVENTORY_BASELINES } from '../src/lib/constants';
+import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
+
+const prisma = new PrismaClient();
+
+const initialAdmins = [
+    'sarah.williams@premier.org.uk',
+    'judah.cole@premier.org.uk',
+    'annette.clowes@premier.org.uk',
+    'alex.cable@premier.org.uk'
+];
 
 async function main() {
-    console.log('Seeding database...');
+    const password = await bcrypt.hash('Premier2026!', 10);
 
-    for (const item of INVENTORY_BASELINES) {
-        await prisma.inventoryItem.upsert({
-            where: { id: item.id },
-            update: {
-                totalCapacity: item.totalCapacity
-            },
+    for (const email of initialAdmins) {
+        await prisma.user.upsert({
+            where: { email },
+            update: { role: 'ADMIN' },
             create: {
-                id: item.id,
-                name: item.name,
-                type: item.type,
-                totalCapacity: item.totalCapacity,
-                unit: item.unit
-            }
+                email,
+                name: email.split('@')[0],
+                password,
+                role: 'ADMIN',
+            },
         });
+        console.log(`Ensured admin user exists: ${email}`);
     }
-
-    console.log('Database seeded successfully.');
 }
 
 main()
