@@ -1,3 +1,4 @@
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import EditBookingModal from '../calendar/EditBookingModal';
 
@@ -50,7 +51,7 @@ export default function UserDashboard({ initialBookings }: UserDashboardProps) {
         });
 
         return filtered;
-    }, [initialBookings, currentUser, searchQuery, filterProduct, filterStatus, sortOrder]);
+    }, [initialBookings, currentUserEmail, searchQuery, filterProduct, filterStatus, sortOrder]);
 
     const getStatusStyle = (status: string) => {
         if (status === 'CONFIRMED') return { bg: 'rgba(34, 197, 94, 0.2)', text: 'var(--success)' };
