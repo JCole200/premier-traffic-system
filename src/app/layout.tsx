@@ -1,11 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import { InventoryProvider } from '../lib/store'
-import { ThemeProvider } from '../lib/theme-context'
-
-import { AuthProvider } from '../lib/auth-context'
-
 import { AuthProvider } from '../lib/auth-context'
 import { ThemeProvider } from '../lib/theme-context'
 import { InventoryProvider } from '../lib/store'
