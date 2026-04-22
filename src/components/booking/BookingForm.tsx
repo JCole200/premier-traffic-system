@@ -17,11 +17,9 @@ interface BookingFormProps {
 
 // Temporary Mock Data for standardizing inputs natively
 const SALES_EXECS = [
-    'Judah Cole',
-    'Jane Doe',
-    'John Smith',
-    'Sarah Jenkins',
-    'Mark Thompson'
+    'Claire Broadmore',
+    'Maxine Ellis',
+    'Chris Barnham'
 ];
 
 const PRODUCTS = [
